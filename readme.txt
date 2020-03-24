@@ -21,5 +21,9 @@ l'appel de bvls se fait via une interface
   end interface
 
 
-avec 
-call bvls(A2tot,R2tot,BND,solnr_sol,chi2,nsetp,ww,istate,loopA) 
+avec
+call bvls(A2tot,R2tot,BND,solnr_sol,chi2,nsetp,ww,istate,loopA)
+
+
+
+gfortran run.f90 bvlsDP.f90 -g -O3 -march=core-avx2 -funroll-loops
