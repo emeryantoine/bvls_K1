@@ -7,24 +7,25 @@ INTERFACE
    END SUBROUTINE
 END INTERFACE
 
-logical :: debug = .FALSE.
+logical :: debug = .FALSE., verif = .TRUE.
 integer, parameter :: width = 74
 integer, parameter :: height = 141970
 
-!todo : A, B
 !raw -> 74 x 141970 
-real :: tmp1, tmp2
+real, dimension(width+3) :: tmp
 
-real :: RNORM, tmp3
-integer :: NSETP,IERR
-real :: BND(2,width)
+real :: RNORM, check
+integer :: NSETP
+real,dimension(2, width) :: BND
 real, dimension(width, height) :: A
-real, dimension(height) :: B, X, tmp4
-real, dimension(width) :: W
-integer, dimension(width) :: INDEX
-integer :: err
+real, dimension(height) :: B
+real, dimension(width) :: W, X
+integer, dimension(height) :: INDEX
+integer :: err, start, stop
 
-open(1, file='BND.out.20', status='old')
+call system_clock(start)
+
+open(1, file='BND.out.20', status='old', action='read')
 
   do i = 1,width
     read (1, *) BND(1, i), BND(2,i)
@@ -32,31 +33,88 @@ open(1, file='BND.out.20', status='old')
 
 close(1)
 
-if (debug .eqv. .TRUE.) then
+if (debug) then
   do i = 1, width
     print *, BND(1, i), BND(2,i)
     exit
   end do
 end if
 
-open(2, file='RAW.out.20', status='old', iostat=err)
+open(2, file='RAW.out.20', status='old', iostat=err, action='read')
 if (err > 0) then
   print *, "an error has occur trying to oen RAW", err
 end if
 
-if (debug .eqv. .TRUE.) then
+if (debug) then
   print *, err
 end if
 
 do i=1,height
-  if (debug .eqv. .TRUE.) then
-    print *, "step : ", i
-    read(1, *, iostat=err) tmp1, tmp2, B(i), A(:,i)
-  end if
+  
+    read(2, *, iostat=err) tmp(:)
+
+    !print *, size(tmp)
+    B(i) = tmp(3)
+
+    !do k = 1,width
+    !  A(k,i) = tmp(k+3,i)
+    !end do
+
+    A(:,i) = tmp(4:size(tmp))
+    
+    if (debug) then
+      print *, "step : ", i
+      print *, tmp
+    end if
 end do
 close(2)
 
+!print *, A(1,1), A(1,2), A(1,3)
+!do i=1,width
+!  X(i) = 424242
+!end do
+
 !lire les fichiers RAW et BND pour pouvoir lancer la suite
-call bvls(A, B, BND, X, RNORM, NSETP, W, INDEX, IEER) 
+print *, "size of B X BND W INDEX :"
+print *, size(B), size(x), size(BND,1), SIZE(BND,2), size(W), size(INDEX)
+  call bvls(A, B, BND, X, RNORM, NSETP, W, INDEX, IEER) 
+
+  print *, "IEER value : ", IEER, " if different than 0 --> problem"
+
+if (debug) then
+  do i=1,width
+    print *, X(i)
+  end do
+end if
+
+if(debug) then
+  print *, "B vector : "
+  do i=1,width
+    print *,"this is B : ", BND(1, i), BND(2,i)
+    print *, "this is A : ",A(:,i)
+  end do
+end if
+
+    call system_clock(stop)
+
+print *, "elapsed time in tick : ", (stop-start), start, stop
+print *, "Comparaison des resultats avec les resultats cense etre obtenues : "
+
+open(3, file='RAW_20.out', status='old', action='read', iostat=err)
+if (err > 0) then
+  print *, "error openning RAW_20"
+end if
+
+if (verif) then
+  print *, "true value --- calculated value --- difference"
+  do i=1,75
+      read(3,*) check
+      if (i /= 1) then
+        print *, check, X(i), check-X(i)
+      end if
+  end do
+end if
+
+close (3)
 
 END PROGRAM main

@@ -24,6 +24,19 @@ l'appel de bvls se fait via une interface
 avec
 call bvls(A2tot,R2tot,BND,solnr_sol,chi2,nsetp,ww,istate,loopA)
 
+#rapport inutilisable
+maqao oneview --create-report=one uarch=HASWELL lprof_params="--use-OS-timers" binary=./a.out
+
+#oui
+maqao cqa loop=5 a.out uarch=HASWELL of=html
+
+gfortran run.f90 bvlsDP.f90 -O3 -funroll-loops -unroll-and-jam -g3 -march=core-avx2
+
+march et funroll ont l'air inutile pour le moment
 
 
-gfortran run.f90 bvlsDP.f90 -g -O3 -march=core-avx2 -funroll-loops
+
+
+25Mo cache/coeur
+128Go RAM
+utiliser ifortran ?

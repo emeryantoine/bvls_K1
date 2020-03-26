@@ -145,6 +145,8 @@ integer INDEX(:)
       real(kind(ONEDP)) ALPHA, ASAVE, CC, EPS, RANGE, RNORM
       real(kind(ONEDP)) NORM, SM, SS, T, UNORM, UP, ZTEST
 
+  print *, BND(1,1), BND(2,1)
+
 CALL  INITIALIZE 
 !   
 !   The above call will set IERR. 
