@@ -130,7 +130,7 @@ SUBROUTINE BVLS ( A, B, BND, X, RNORM, NSETP, W, INDEX, IERR )
 
       implicit none
       logical FIND, HITBND, FREE1, FREE2, FREE 
-      integer IERR, M, N 
+      integer IERR, M, N
       integer I, IBOUND, II, IP, ITER, ITMAX, IZ, IZ1, IZ2
       integer J, JJ, JZ, L, LBOUND, NPP1, NSETP
 
@@ -144,14 +144,20 @@ integer INDEX(:)
                                  Z(size(A,1)), BND(:,:)
       real(kind(ONEDP)) ALPHA, ASAVE, CC, EPS, RANGE, RNORM
       real(kind(ONEDP)) NORM, SM, SS, T, UNORM, UP, ZTEST
+      integer :: compteur = 1
 
-  print *, BND(1,1), BND(2,1)
+  !print *, "values in BVLS", B(2), A(2,2)
+
+close(1)
 
 CALL  INITIALIZE 
 !   
 !   The above call will set IERR. 
 LOOPA: DO
-!   
+
+    !print *, compteur
+    !compteur = compteur + 1
+
 !   Quit on error flag, or if all coefficients are already in the 
 !   solution, .or. if M columns of A have been triangularized.
    IF  (IERR  /=   0  .or.  IZ1  > IZ2 .or. NSETP >= M) exit LOOPA   
@@ -177,8 +183,8 @@ CONTAINS  ! These are internal subroutines.
 SUBROUTINE INITIALIZE 
    M=size(A,1); N=size(A,2)
 
- print*,'M',M
- print*,'N',N
+ !print*,'M',M
+ !print*,'N',N
    IF  (M  <=  0 .or. N  <=  0) then
       IERR = 1
       RETURN
@@ -186,27 +192,29 @@ SUBROUTINE INITIALIZE
 !
 ! Check array sizes for consistency and with M and N.
    IF(SIZE(X) < N) THEN
-      IERR=2
+      IERR=21
+      print *,"erorr, size of X : ", size(X), " < N (", N, ")"
       RETURN
    END IF
    IF(SIZE(B) < M) THEN
-      IERR=2
+      IERR=22
       RETURN
    END IF
    IF(SIZE(BND,1) /= 2) THEN
-      IERR=2
+      IERR=23
+      print *, "error, size BND(1) non equal 2 : ", size(BND,1)
       RETURN 
    END IF
    IF(SIZE(BND,2) < N) THEN
-      IERR=2
+      IERR=24
       RETURN
    END IF
    IF(SIZE(W) < N) THEN
-      IERR=2
+      IERR=25
       RETURN
    END IF
    IF(SIZE(INDEX) < N) THEN
-      IERR=2
+      IERR=26
       RETURN
    END IF
 
@@ -218,7 +226,9 @@ IERR = 0
    ITMAX=100*N 
    ITER=0
 
-print*,IERR,EPS,ITMAX,ITER
+
+!TODO REMOVE COMMENT BELOW FOR INFO DURING EXEC
+!print*,IERR,EPS,ITMAX,ITER
 !   Initialize the array index().  
    DO I=1,N
       INDEX(I)=I

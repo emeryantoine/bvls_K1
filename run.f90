@@ -2,7 +2,7 @@ PROGRAM main
 
 INTERFACE
    SUBROUTINE BVLS (A, B, BND, X, RNORM, NSETP, W, INDEX, IERR)
-    REAL(KIND(1E0)) A(:,:), B(:), BND(:,:), X(:), RNORM, W(:)
+    REAL(KIND(1D0)) A(:,:), B(:), BND(:,:), X(:), RNORM, W(:)
     INTEGER NSETP, INDEX(:), IERR
    END SUBROUTINE
 END INTERFACE
@@ -12,30 +12,37 @@ integer, parameter :: width = 74
 integer, parameter :: height = 141970
 
 !raw -> 74 x 141970 
-real, dimension(width+3) :: tmp
+real(kind=8), dimension(:),allocatable :: tmp
 
-real :: RNORM, check
+real(kind=8) :: CHI2, check
 integer :: NSETP
-real,dimension(2, width) :: BND
-real, dimension(width, height) :: A
-real, dimension(height) :: B
-real, dimension(width) :: W, X
-integer, dimension(height) :: INDEX
+real(kind=8), dimension(:,:),allocatable :: BND
+real(kind=8), dimension(:,:),allocatable :: A
+real(kind=8), dimension(:),allocatable :: B
+real(kind=8), dimension(:),allocatable :: W, X
+integer, dimension(:),allocatable :: INDEX
 integer :: err, start, stop
 
-call system_clock(start)
+
+allocate(A(height, width))
+allocate(BND(2,width))
+allocate(B(height))
+allocate(W(width))
+allocate(X(width))
+allocate(INDEX(height))
+allocate(tmp(width+3))
 
 open(1, file='BND.out.20', status='old', action='read')
 
   do i = 1,width
-    read (1, *) BND(1, i), BND(2,i)
+    read (1, *) BND(1,i), BND(2,i)
   end do
 
 close(1)
 
 if (debug) then
   do i = 1, width
-    print *, BND(1, i), BND(2,i)
+    print *, BND(1,i), BND(2,i)
     exit
   end do
 end if
@@ -60,7 +67,7 @@ do i=1,height
     !  A(k,i) = tmp(k+3,i)
     !end do
 
-    A(:,i) = tmp(4:size(tmp))
+    A(i,:) = tmp(4:size(tmp))
     
     if (debug) then
       print *, "step : ", i
@@ -69,17 +76,31 @@ do i=1,height
 end do
 close(2)
 
+!print *, "true value of B(1) : 0.39322173244225497868E+01"
+!print *, "B first value in initialisation and A(1,1)", B(1), A(1,1)
+
 !print *, A(1,1), A(1,2), A(1,3)
 !do i=1,width
 !  X(i) = 424242
 !end do
 
 !lire les fichiers RAW et BND pour pouvoir lancer la suite
-print *, "size of B X BND W INDEX :"
-print *, size(B), size(x), size(BND,1), SIZE(BND,2), size(W), size(INDEX)
-  call bvls(A, B, BND, X, RNORM, NSETP, W, INDEX, IEER) 
+if (debug) then
+  print *, "size of B X BND1 BND2 W INDEX A1 A2:"
+  print *, size(B), size(x), size(BND,1), SIZE(BND,2), size(W), size(INDEX), "M",size(A,1), "N",size(A,2)
+endif
 
-  print *, "IEER value : ", IEER, " if different than 0 --> problem"
+!print *, "values in run : ", B(2), A(2,2)
+
+call system_clock(start)
+
+  call bvls(A, B, BND, X, CHI2, NSETP, W, INDEX, IEER) 
+
+call system_clock(stop)
+
+!print *, "elapsed time in tick : ", (stop-start), start, stop
+
+!print *, "IEER value : ", IEER, " if different than 0 --> problem"
 
 if (debug) then
   do i=1,width
@@ -90,15 +111,11 @@ end if
 if(debug) then
   print *, "B vector : "
   do i=1,width
-    print *,"this is B : ", BND(1, i), BND(2,i)
-    print *, "this is A : ",A(:,i)
+    print *,"this is B : ", BND(1,i), BND(2,i)
+    print *, "this is A : ",A(i,:)
   end do
-end if
+end if 
 
-    call system_clock(stop)
-
-print *, "elapsed time in tick : ", (stop-start), start, stop
-print *, "Comparaison des resultats avec les resultats cense etre obtenues : "
 
 open(3, file='RAW_20.out', status='old', action='read', iostat=err)
 if (err > 0) then
@@ -111,6 +128,8 @@ if (verif) then
       read(3,*) check
       if (i /= 1) then
         print *, check, X(i), check-X(i)
+      else
+        print*, "valeur chi2 :", check, CHI2, CH2-check
       end if
   end do
 end if
