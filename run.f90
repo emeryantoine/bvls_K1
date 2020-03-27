@@ -7,7 +7,7 @@ INTERFACE
    END SUBROUTINE
 END INTERFACE
 
-logical :: debug = .FALSE., verif = .TRUE.
+logical :: debug = .FALSE., verif = .False.
 integer, parameter :: width = 74
 integer, parameter :: height = 141970
 
@@ -136,11 +136,11 @@ if (verif) then
         print*, "valeur chi2 :", check, CHI2/141970, (CH2/141970)-check
       end if
   end do
+print *, "err max is : ", errmax
+print *, "elapsed time in tick : ", (stop-start), start, stop
 end if
 
-print *, "err max is : ", errmax
 
-print *, "elapsed time in tick : ", (stop-start), start, stop
 close (3)
 
 END PROGRAM main
