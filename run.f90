@@ -14,7 +14,7 @@ integer, parameter :: height = 141970
 !raw -> 74 x 141970 
 real(kind=8), dimension(:),allocatable :: tmp
 
-real(kind=8) :: CHI2, check
+real(kind=8) :: CHI2, check, abserr, errmax = 0.000000000001
 integer :: NSETP
 real(kind=8), dimension(:,:),allocatable :: BND
 real(kind=8), dimension(:,:),allocatable :: A
@@ -98,10 +98,10 @@ call system_clock(start)
 
 call system_clock(stop)
 
-!print *, "elapsed time in tick : ", (stop-start), start, stop
 
-!print *, "IEER value : ", IEER, " if different than 0 --> problem"
-
+if (IEER /= 0) then
+  print *, "IEER value : ", IEER, " if different than 0 --> problem"
+endif
 if (debug) then
   do i=1,width
     print *, X(i)
@@ -127,13 +127,20 @@ if (verif) then
   do i=1,75
       read(3,*) check
       if (i /= 1) then
-        print *, check, X(i), check-X(i)
+        abserr = min(check, X(i-1))/max(check, X(i-1))
+        print*, check, X(i-1), abserr
+        if (abserr < errmax) then
+          errmax = abserr
+        endif
       else
-        print*, "valeur chi2 :", check, CHI2, CH2-check
+        print*, "valeur chi2 :", check, CHI2/141970, (CH2/141970)-check
       end if
   end do
 end if
 
+print *, "err max is : ", errmax
+
+print *, "elapsed time in tick : ", (stop-start), start, stop
 close (3)
 
 END PROGRAM main
