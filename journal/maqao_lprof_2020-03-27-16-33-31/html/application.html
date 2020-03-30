@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><title>ONEVIEW: report from lprof - Application</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" media="screen" href="css/ui.jqgrid.css" />
+<link rel="stylesheet" type="text/css" href="css/themes/redmond_custom/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="css/themes/redmond_custom/jquery.jqplot.min.css" />
+<link rel="stylesheet" type="text/css" href="css/maqao_modal.css" />
+<link rel="stylesheet" type="text/css" href="css/global.css" />
+<link rel="stylesheet" type="text/css" href="css/maqao_menu.css" />
+<script src="js/jquery-1.9.0.min.js" ></script>
+<script src="js/jquery-ui-1.10.3.custom.min.js" ></script>
+<script src="js/grid.locale-en.js" ></script>
+<script src="js/jquery.jqGrid.min.js" ></script>
+<script src="js/d3.min.js" ></script>
+<script class="include" src="js/jquery.jqplot.min.js"></script>
+<script class="include" src="js/jqplot.pieRenderer.min.js"></script>
+<script class="include" src="js/jqplot.barRenderer.min.js"></script>
+<script class="include" src="js/jqplot.categoryAxisRenderer.min.js"></script>
+<script class="include" src="js/jqplot.pointLabels.min.js"></script>
+<script class="include" src="js/jqplot.cursor.min.js"></script>
+<script class="include" src="js/jqplot.canvasTextRenderer.min.js"></script>
+<script class="include" src="js/jqplot.canvasAxisTickRenderer.min.js"></script>
+<script class="include" src="js/jqplot.canvasAxisLabelRenderer.min.js"></script>
+<script class="include" src="js/jqplot.enhancedLegendRenderer.min.js"></script>
+<script class="include" src="js/jqplot.highlighter.min.js"></script>
+<script class="include" src="js/maqao_menu.js"></script>
+<script>
+$( function() {
+  $( document ).tooltip({
+    content: function() {
+      if ($(this).hasClass ("tooltip-maqao")
+      ||  $(this).hasClass ("tooltip-maqao-button")) {
+        return $(this).attr('title');
+      }
+    },
+    position: {
+      my: "center bottom-20",
+        at: "center top",
+        using: function( position, feedback ) {
+          $( this ).css( position );
+          $( "<div>" )
+            .addClass( "arrow-tt" )
+            .addClass( feedback.vertical )
+            .addClass( feedback.horizontal )
+            .appendTo( this );
+        }
+      }
+  });
+} );
+
+// Code from https://www.htmlgoodies.com/beyond/javascript/article.php/3724571/Using-Multiple-JavaScript-Onload-Functions.htm
+function addLoadEvent(func) {
+  var oldonload = window.onload;
+  if (typeof window.onload != 'function') {
+    window.onload = func;
+  } else {
+    window.onload = function() {
+      if (oldonload) {
+        oldonload();
+      }
+      func();
+    }
+  }
+}
+</script>
+</head><body>
+<div id="page_title"><img alt="MAQAO" id="maqao_logo" src="images/MAQAO_small_logo.png" /><ul id="maqao_menu"><li><a class="_current_page" href="application.html">Application</a></li><li><a  href="fcts_and_loops.html">Functions</a></li><li><a  href="loops_index.html">Loops</a></li><li><a  href="topology.html">Topology</a></li></ul></div>
+<div id="anchor_file_start"></div>
+<div id="maqao_content">
+<div id="spacer_page_title" style="height:100px;" ></div>
+<div style="width: 100%; display: table;" class="main_section_div">
+<div style="display: table-row">
+<div class="_fixed_box" style="width:30%;display: table-cell;overflow-y: auto;">
+<div>
+<table style="width:100%;">
+<tr><td id="td_app_selector_1" onclick="click_app_selector (this);" class="td_app_selector">Application Categorization<span class="tooltip-maqao-button help-maqao" title="Details how the time is spent between several categories: <i>System</i> (system calls), <i>Binary</i> (user code), <i>MPI</i> (MPI runtime functions), <i>OMP</i> (OpenMP runtime functions),<i>Math</i>, (Math libraries), <i>Pthread</i>, (Pthread runtime), <i>I/O</i> (I/O functions), <i>String</i> (string manipulation functions), <i>Memory</i> (Memory management functions), <i>Others</i> (everything not included in previous categories)"></span></td></tr>
+<tr><td id="td_app_selector_2" onclick="click_app_selector (this);" class="td_app_selector">Function Based Profile<span class="tooltip-maqao-button help-maqao" title="Profiling of the application at the function level"></span></td></tr>
+<tr><td id="td_app_selector_3" onclick="click_app_selector (this);" class="td_app_selector">Loop Based Profile<span class="tooltip-maqao-button help-maqao" title="Profiling of the application at the loop level"></span></td></tr>
+<tr><td id="td_app_selector_4" onclick="click_app_selector (this);" class="td_app_selector">Detailed Loop Based Profile<span class="tooltip-maqao-button help-maqao" title="Profiling of the application at the loop level, with each coverage split between innermost loops, inbetween loops and outermost loops."></span></td></tr>
+<tr><td id="td_app_selector_5" onclick="click_app_selector (this);" class="td_app_selector">Loop Path Count Profile<span class="tooltip-maqao-button help-maqao" title="Profiling of the application innermost loops based on their number of paths."></span></td></tr>
+<tr><td id="td_app_selector_6" onclick="click_app_selector (this);" class="td_app_selector">Pop Metrics<span class="tooltip-maqao-button help-maqao" title="A set of metrics for POP project"></span></td></tr>
+</table>
+</div>
+</div>
+<div class="_fixed_box" style="width:70%;display: table-cell;">
+<div id="td_app_selected_1" class="td_app_selected">
+<h3 class="selected_panel_h3">Application Categorization</h3>
+      <div id="chart_cat_0" style="height:400px; margin: 0 auto; overflow-x:auto; overflow-y:hidden;"></div>
+      <script class="code" >
+      </script><div class="_accordion_box collapsed"><h3 id="_accordion_header_1" class="_header collapsed" onclick="_click_accordion_header(this)" ><span class="_accordion_box_button">&#x25B6;</span>Detailed Application Categorization</h3><div id="_accordion_content_1" class="_content collapsed"><div class="_div_table"><table id="_treed_table_0" class="_treed_table"><tr><th class=" _left">ID</th><th>Time(s)</th><th>Binary(%)</th><th>MPI(%)</th><th>OMP(%)</th><th>Math(%)</th><th>System(%)</th><th>Pthread(%)</th><th>IO(%)</th><th>String(%)</th><th>Memory(%)</th><th>Others(%)</th></tr>
+<tr id="_tr_0_1" ><td id="_tr_0_1-1"  data-_i="1" data-_j="1"  class=" _left"  style="width:23%;" ><span onclick="_click_treed(this)" style="margin-right:5px;margin-left:0px;cursor:pointer;" >&#x25BC;</span>Node enderswype<span onclick="_click_expand(this)" class="span_expand">&#8211;</span></td><td id="_tr_0_1-2"  data-_i="1" data-_j="2"  class=" _centered"  style="width:7%;" >5.96</td><td id="_tr_0_1-3"  data-_i="1" data-_j="3"  class=" _centered"  style="width:7%;" >17.33</td><td id="_tr_0_1-4"  data-_i="1" data-_j="4"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1-5"  data-_i="1" data-_j="5"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1-6"  data-_i="1" data-_j="6"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1-7"  data-_i="1" data-_j="7"  class=" _centered"  style="width:7%;" >9.19</td><td id="_tr_0_1-8"  data-_i="1" data-_j="8"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1-9"  data-_i="1" data-_j="9"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1-10"  data-_i="1" data-_j="10"  class=" _centered"  style="width:7%;" >17.11</td><td id="_tr_0_1-11"  data-_i="1" data-_j="11"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1-12"  data-_i="1" data-_j="12"  class=" _centered"  style="width:7%;" >56.37</td></tr>
+<tr class="_tr_0_1"  id="_tr_0_1_1" ><td id="_tr_0_1_1-1"  data-_i="2" data-_j="1"  class=" _left"  style="width:23%;" ><span onclick="_click_treed(this)" style="margin-right:5px;margin-left:15px;cursor:pointer;" >&#x25BC;</span>Process 30190<span onclick="_click_expand(this)" class="span_expand">&#8211;</span></td><td id="_tr_0_1_1-2"  data-_i="2" data-_j="2"  class=" _centered"  style="width:7%;" >5.96</td><td id="_tr_0_1_1-3"  data-_i="2" data-_j="3"  class=" _centered"  style="width:7%;" >17.33</td><td id="_tr_0_1_1-4"  data-_i="2" data-_j="4"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1-5"  data-_i="2" data-_j="5"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1-6"  data-_i="2" data-_j="6"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1-7"  data-_i="2" data-_j="7"  class=" _centered"  style="width:7%;" >9.19</td><td id="_tr_0_1_1-8"  data-_i="2" data-_j="8"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1-9"  data-_i="2" data-_j="9"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1-10"  data-_i="2" data-_j="10"  class=" _centered"  style="width:7%;" >17.11</td><td id="_tr_0_1_1-11"  data-_i="2" data-_j="11"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1-12"  data-_i="2" data-_j="12"  class=" _centered"  style="width:7%;" >56.37</td></tr>
+<tr class="_tr_0_1_1"  id="_tr_0_1_1_1" ><td id="_tr_0_1_1_1-1"  data-_i="3" data-_j="1"  class=" _left"  style="width:23%;" ><span style="margin-right:10px;margin-left:33px;" >&#x25CB;</span>Thread 30190</td><td id="_tr_0_1_1_1-2"  data-_i="3" data-_j="2"  class=" _centered"  style="width:7%;" >5.96</td><td id="_tr_0_1_1_1-3"  data-_i="3" data-_j="3"  class=" _centered"  style="width:7%;" >17.33</td><td id="_tr_0_1_1_1-4"  data-_i="3" data-_j="4"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1_1-5"  data-_i="3" data-_j="5"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1_1-6"  data-_i="3" data-_j="6"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1_1-7"  data-_i="3" data-_j="7"  class=" _centered"  style="width:7%;" >9.19</td><td id="_tr_0_1_1_1-8"  data-_i="3" data-_j="8"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1_1-9"  data-_i="3" data-_j="9"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1_1-10"  data-_i="3" data-_j="10"  class=" _centered"  style="width:7%;" >17.11</td><td id="_tr_0_1_1_1-11"  data-_i="3" data-_j="11"  class=" _centered"  style="width:7%;" >0</td><td id="_tr_0_1_1_1-12"  data-_i="3" data-_j="12"  class=" _centered"  style="width:7%;" >56.37</td></tr>
+</table></div>
+</div></div></div>
+<div id="td_app_selected_2" class="td_app_selected">
+<div><h3 class="selected_panel_h3">Function Based Profile</h3>
+<div style="margin: 10px; overflow-x:auto; overflow-y:hidden;"><div id="chart_cat_1" style="height:500px;margin-top:20px;" ></div></div>
+<script class="code" >
+</script></div>
+</div>
+<div id="td_app_selected_3" class="td_app_selected">
+<div><h3 class="selected_panel_h3">Loop Based Profile</h3>
+<div style="margin: 10px; overflow-x:auto; overflow-y:hidden;"><div id="chart_cat_2" style="height:500px;margin-top:20px;" ></div></div>
+<script class="code" >
+</script></div>
+</div>
+<div id="td_app_selected_4" class="td_app_selected">
+<div><h3 class="selected_panel_h3">Detailed Loop Based Profile</h3>
+<div style="margin: 10px; overflow-x:auto; overflow-y:hidden;"><div id="chart_cat_3" style="height:500px;margin-top:20px;" ></div></div>
+<script class="code" >
+</script></div>
+</div>
+<div id="td_app_selected_5" class="td_app_selected">
+<div><h3 class="selected_panel_h3">POP metrics</h3>
+<table style="width:100%;">
+  <tr><th>Metric</th><th>Value</th></tr>  <tr><td><span class="tooltip-maqao" title="Load Balance = AVG (computation time) / MAX (computation time)<br>computation time = TOTAL time - (MPI time + OMP time)">Load Balance</span></td><td>1.0000</td></tr>  <tr><td><span class="tooltip-maqao" title="Communication Efficiency = MAX (computation ratio)<br>computation ratio = computation time / TOTAL time<br>computation time = TOTAL time - (MPI time + OMP time)">Communication Efficiency</span></td><td>1.0000</td></tr>  <tr><td><span class="tooltip-maqao" title="Average Frequency = (SUM (thread_cycles) / SUM (walltime)) / 10^6">Average Frequency</span></td><td>Not available</td></tr>  <tr><td><span class="tooltip-maqao" title="IPC = (SUM (insns) / SUM (thread_cycles)">IPC</span></td><td>Not available</td></tr>  <tr><td><span class="tooltip-maqao" title="Vectorization Efficiency = vectorized bytes / all bytes">Vectorization Efficiency</span></td><td>Not available</td></tr></table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+addLoadEvent(function(){
+  var w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.getElementsByTagName("body")[0],
+    x = w.innerWidth || e.clientWidth || g.clientWidth,
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+  var list = document.getElementsByClassName("main_section_div");
+  for (var i = 0; i < list.length; i++) {
+    if (y - 150 > 0) {
+      list[i].style.height = (y - 150)+"px";
+      list[i].style.maxHeight = (y - 150)+"px";
+    }
+  }
+});
+function load_charts () {
+  var obj = document.getElementById ("td_app_selected_1");
+  obj.style.display = "block";
+  document.getElementById("chart_cat_0").innerHTML = "";
+        $(document).ready(function(){
+          var data = [
+            ['Binary',17.33],['MPI',0],['OMP',0],['Math',0],['System',9.19],['Pthread',0],['IO',0],['String',17.11],['Memory',0],['Others',56.37],
+          ];
+          var plot0 = jQuery.jqplot ('chart_cat_0', [data],
+                      {
+                        grid: {
+                          drawBorder: false,
+                          drawGridlines: false,
+                          background: '#ffffff',
+                          shadow:false
+                        },
+                        seriesColors:['#4bb2c5','#EAA228','#c5b47f','#579575','#839557','#958c12','#953579','#4b5de4','#d8b83f','#ff5800',],
+                        seriesDefaults: {
+                          renderer: jQuery.jqplot.PieRenderer,
+                          rendererOptions: {
+                            showDataLabels: true
+                          }
+                        },
+                        legend: { show:true, location: 'e' }
+                      }
+          );
+          $("#chart_cat_0").bind('jqplotDataHighlight', function(ev, seriesIndex, pointIndex, data) {
+            var $this = $(this);
+            $this.attr('title', data[0] + ": " + data[1]);
+          });
+          $("#chart_cat_0").bind('jqplotDataUnhighlight', function(ev, seriesIndex, pointIndex, data) {
+            var $this = $(this);
+            $this.attr('title',"");
+          });
+        });
+  obj.style.display = "none";
+  var obj = document.getElementById ("td_app_selected_2");
+  obj.style.display = "block";
+  document.getElementById("chart_cat_1").innerHTML = "";
+  $(document).ready(function(){
+  var plot1_data = [[3,1,3,2,2,3,1,13,],[81.3,5.7,6.56,3.06,1.31,1.14,0.15,0.8,],[81.3,87,93.56,96.62,97.93,99.07,99.22,100.02,],];
+  var plot1_ticks = ['> 8%','4% to 8%','2% to 4%','1% to 2%','0.5% to 1%','0.25% to 0.5%','0.125% to 0.25%','< 0.125%',];
+  var plot1 = jQuery.jqplot ('chart_cat_1', plot1_data, {
+    seriesDefaults: {
+      renderer: jQuery.jqplot.BarRenderer,
+      rendererOptions: {
+      },
+      pointLabels: {
+        show: true
+      },
+    },
+    axes: {
+      xaxis: {
+        renderer: $.jqplot.CategoryAxisRenderer,
+        ticks: plot1_ticks,
+        label: 'Coverage Range',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+      },
+      yaxis: {
+        label: 'Number of Functions',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+        autoscale:true,
+       min:0,
+      },
+      y2axis: {
+        label: 'Coverage (%s)',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+        autoscale:true,
+       min:0,
+      }
+    },
+    highlighter: {
+      tooltipContentEditor: function (str, seriesIndex, pointIndex) {
+        return plot1_ticks[pointIndex]+' - '+plot1_data[seriesIndex][pointIndex];
+      },
+      show: true,
+      showTooltip: true,
+      sizeAdjust: 10,
+      formatString: '%s',
+      tooltipLocation: 'n',
+      useAxesFormatters: false,
+    },
+    legend: {
+       renderer: $.jqplot.EnhancedLegendRenderer,
+       show: true, 
+       location: 's', 
+       placement: 'outsideGrid',
+       rendererOptions: {
+          numberRows: '1',
+       },
+    },
+    series: [{label:'Number of Functions', yaxis:'yaxis', },{label:'Coverage over Range', yaxis:'y2axis', },{label:'Cumulated Coverage', renderer: $.jqplot.LineRenderer, yaxis:'y2axis', },],
+  });
+});
+  obj.style.display = "none";
+  var obj = document.getElementById ("td_app_selected_3");
+  obj.style.display = "block";
+  document.getElementById("chart_cat_2").innerHTML = "";
+  $(document).ready(function(){
+  var plot2_data = [[1,1,0,0,0,2,4,3,],[9.98,5.74,0,0,0,0.67,0.66,0.24,],[9.98,15.72,15.72,15.72,15.72,16.39,17.05,17.29,],];
+  var plot2_ticks = ['> 8%','4% to 8%','2% to 4%','1% to 2%','0.5% to 1%','0.25% to 0.5%','0.125% to 0.25%','< 0.125%',];
+  var plot2 = jQuery.jqplot ('chart_cat_2', plot2_data, {
+    seriesDefaults: {
+      renderer: jQuery.jqplot.BarRenderer,
+      rendererOptions: {
+      },
+      pointLabels: {
+        show: true
+      },
+    },
+    axes: {
+      xaxis: {
+        renderer: $.jqplot.CategoryAxisRenderer,
+        ticks: plot2_ticks,
+        label: 'Coverage Range',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+      },
+      yaxis: {
+        label: 'Number of Loops',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+        autoscale:true,
+       min:0,
+      },
+      y2axis: {
+        label: 'Coverage (%s)',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+        autoscale:true,
+       min:0,
+      }
+    },
+    highlighter: {
+      tooltipContentEditor: function (str, seriesIndex, pointIndex) {
+        return plot2_ticks[pointIndex]+' - '+plot2_data[seriesIndex][pointIndex];
+      },
+      show: true,
+      showTooltip: true,
+      sizeAdjust: 10,
+      formatString: '%s',
+      tooltipLocation: 'n',
+      useAxesFormatters: false,
+    },
+    legend: {
+       renderer: $.jqplot.EnhancedLegendRenderer,
+       show: true, 
+       location: 's', 
+       placement: 'outsideGrid',
+       rendererOptions: {
+          numberRows: '1',
+       },
+    },
+    series: [{label:'Number of Loops', yaxis:'yaxis', },{label:'Coverage over Range', yaxis:'y2axis', },{label:'Cumulated Coverage', renderer: $.jqplot.LineRenderer, yaxis:'y2axis', },],
+  });
+});
+  obj.style.display = "none";
+  var obj = document.getElementById ("td_app_selected_4");
+  obj.style.display = "block";
+  document.getElementById("chart_cat_3").innerHTML = "";
+  $(document).ready(function(){
+  var plot3_data = [[9.98,5.74,0,0,0,0.67,0.66,0.24,],[0,0,0,0,0,0,0,0.04,],[0,0,0,0,0,0,0,0,],[9.98,15.72,15.72,15.72,15.72,16.39,17.05,17.29,],[0,0,0,0,0,0,0,0.04,],[0,0,0,0,0,0,0,0,],[9.98,15.72,15.72,15.72,15.72,16.39,17.05,17.33,],];
+  var plot3_ticks = ['> 8%','4% to 8%','2% to 4%','1% to 2%','0.5% to 1%','0.25% to 0.5%','0.125% to 0.25%','< 0.125%',];
+  var plot3 = jQuery.jqplot ('chart_cat_3', plot3_data, {
+    seriesDefaults: {
+      renderer: jQuery.jqplot.BarRenderer,
+      rendererOptions: {
+      },
+      pointLabels: {
+        show: true
+      },
+    },
+    axes: {
+      xaxis: {
+        renderer: $.jqplot.CategoryAxisRenderer,
+        ticks: plot3_ticks,
+        label: 'Coverage Range',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+      },
+      yaxis: {
+        label: 'Coverage (%)',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+        autoscale:true,
+       min:0,
+      },
+      y2axis: {
+        label: 'Cumul (%)',
+        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+        autoscale:true,
+       min:0,
+      }
+    },
+    highlighter: {
+      tooltipContentEditor: function (str, seriesIndex, pointIndex) {
+        return plot3_ticks[pointIndex]+' - '+plot3_data[seriesIndex][pointIndex];
+      },
+      show: true,
+      showTooltip: true,
+      sizeAdjust: 10,
+      formatString: '%s',
+      tooltipLocation: 'n',
+      useAxesFormatters: false,
+    },
+    legend: {
+       renderer: $.jqplot.EnhancedLegendRenderer,
+       show: true, 
+       location: 's', 
+       placement: 'outsideGrid',
+       rendererOptions: {
+          numberRows: '1',
+       },
+    },
+    series: [{label:'Innermost/Single', yaxis:'yaxis', },{label:'InBetween', yaxis:'yaxis', },{label:'Outermost', yaxis:'yaxis', },{label:'Cumulated Innermost/Single', renderer: $.jqplot.LineRenderer, yaxis:'y2axis', },{label:'Cumulated InBetween', renderer: $.jqplot.LineRenderer, yaxis:'y2axis', },{label:'Cumulated Outermost', renderer: $.jqplot.LineRenderer, yaxis:'y2axis', },{label:'Cumulated Total', renderer: $.jqplot.LineRenderer, yaxis:'y2axis', },],
+  });
+});
+  obj.style.display = "none";
+}
+function _onresize () {
+  var i = 1;
+  var c = 1;
+  var max_i = 5;
+  var obj;
+  while (i <= max_i) {
+    obj = document.getElementById ("td_app_selector_"+i);
+    if (obj != null && obj.classList.contains ("current")) {
+      c = i;
+      break;
+    }
+    i = i + 1;
+  }
+  load_charts ();
+  click_app_selector (document.getElementById ("td_app_selector_"+c));
+  document.getElementById("spacer_page_title").style.height = (document.getElementById("page_title").scrollHeight + 20)+"px";
+}
+var resizeId;
+window.addEventListener("resize", function() {
+  clearTimeout(resizeId);
+  resizeId = setTimeout(_onresize, 250);
+});
+function click_app_selector (obj) {
+  var x = document.getElementsByClassName("td_app_selector");
+  for (var i = 0; i < x.length; i++) {
+    x[i].classList.remove("current");
+  }
+  obj.classList.add ("current");
+  x = document.getElementsByClassName("td_app_selected");
+  for (var i = 0; i < x.length; i++) {
+    x[i].style.display = "none";
+  }
+  document.getElementById ("td_app_selected_"+obj.id.substring(16)).style.display = "initial";
+}
+addLoadEvent(function(){
+  load_charts ();
+  click_app_selector (document.getElementById ("td_app_selector_1"));
+});
+</script>
+<style>
+.td_app_selector {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.td_app_selector:hover {
+  border-left: 4px solid #4297d7;
+  padding-left: 4px;
+}
+.td_app_selector.current {
+  background: #e9f3fc;
+}
+.selected_panel_h3 {
+  text-align: left;
+  background-color: #16609c;
+  color: #FFFFFF;
+  margin: 0px;
+  padding: 5px 0px 5px 10px;
+}
+</style>
+
+  <div id="MaqaoModal" class="maqao_modal">
+    <div class="maqao_modal-content">
+      <div class="maqao_modal-header">
+        <span class="maqao_close">&times;</span>
+      </div>
+      <div id="maqao_modal-body" class="maqao_modal-body">
+      </div>
+    </div>
+  </div>
+</div><script>
+var modal = document.getElementById('MaqaoModal');
+var span = document.getElementsByClassName("maqao_close")[0];
+span.onclick = function() {
+    modal.style.display = "none";
+}
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v2 - v1 : v1.toString().localeCompare(v2)
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+addLoadEvent(function(){
+  document.querySelectorAll('._fixed_table th').forEach(th => th.addEventListener('click', (() => {
+    const table = th.closest('table');
+    // Remove all symbols in header
+    table.querySelectorAll('th').forEach(function (e) {
+      e.firstChild.textContent = "";
+    });
+    // Change the symbol on the clicked header
+    if (this.asc != true) {
+      th.firstChild.textContent = "\u25BC";
+    }
+    else {
+      th.firstChild.textContent = "\u25B2";
+    }
+    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+        .forEach(tr => table.appendChild(tr) );
+  })));
+});
+function _check_all_checkbox_ (obj_id, opts_ids) {
+  var obj   = document.getElementById (obj_id);
+  var opts  = window[opts_ids];
+  var count = 0
+  for (i = 0; i < opts.length; i++) {
+    var obj_s = document.getElementById(opts[i]);
+    if (obj_s.checked) {
+      count ++;
+    }
+  }
+  if (count == 0) {
+    obj.value = "Select all";
+  }
+  else if (count == opts.length) {
+    obj.value = "Select none";
+  }
+}
+// Fonction for table selector
+function click_table_menu (c, obj_id, opt_ids) {
+  $("."+c).each(function(index, element) {
+    element.classList.toggle("_tcol_hidden");
+  });
+  if (obj_id != undefined) {
+    _check_all_checkbox_ (obj_id, opt_ids)
+  }
+}
+function set_all_table_menu (obj, var_opt_ids) {
+  var opt_ids = window[var_opt_ids];
+  var is_selected = true
+  if (obj.value == "Select all") {
+    is_selected = false;
+  }
+  for (i = 0; i < opt_ids.length; i++) {
+    var obj_s = document.getElementById(opt_ids[i]);
+    if (is_selected == obj_s.checked) {
+      click_table_menu (opt_ids[i]);
+      obj_s.checked = !obj_s.checked;
+    }
+  }
+  if (is_selected == false) {
+    obj.value = "Select none";
+  } else {
+    obj.value = "Select all";
+  }
+}
+// Script for accordion box
+function _click_accordion_header(obj) {
+  var content_id = '_accordion_content_' + obj.id.substr (obj.id.lastIndexOf('_') + 1);
+  var content = document.getElementById(content_id);
+  content.classList.toggle('collapsed');
+  obj.classList.toggle('collapsed');
+  obj.parentNode.classList.toggle('collapsed');
+  // Check if the box must be openned ...
+  if (obj.classList.contains ('collapsed'))
+  {
+    obj.firstChild.textContent = "\u25B6";
+  }
+  // or closed.
+  else 
+  {
+    obj.firstChild.textContent = "\u25BC";
+  }
+}
+  // Script for paged table
+function _click_paged_prev(obj) {
+  var pages_content_id = '_paged_tables_page_' + obj.parentNode.parentNode.id.substr (obj.parentNode.parentNode.id.lastIndexOf('_') + 1);
+  var pages_content = document.getElementById(pages_content_id).innerHTML;
+  var max_pages = pages_content.substr (pages_content.lastIndexOf('/') + 1);
+  var cur_page  = pages_content.substring (pages_content.lastIndexOf(' ') + 1, pages_content.lastIndexOf('/'));
+  max_pages = Number (max_pages);
+  cur_page  = Number (cur_page);
+  if (cur_page > 1) {
+    var div_paged = obj.parentNode.parentNode.id;
+    var i;
+    var x = document.getElementsByClassName(div_paged + '_' + (cur_page - 1));
+    for (i = 0; i < x.length; i++) {
+      x[i].classList.toggle('_paged_hidden');
+    }
+    x = document.getElementsByClassName(div_paged + '_' + (cur_page - 2));
+    for (i = 0; i < x.length; i++) {
+      x[i].classList.toggle('_paged_hidden');
+    }
+  document.getElementById(pages_content_id).textContent = "Page " + (cur_page - 1) + "/" + max_pages;
+  }
+}
+function _click_paged_next(obj) {
+  var pages_content_id = '_paged_tables_page_' + obj.parentNode.parentNode.id.substr (obj.parentNode.parentNode.id.lastIndexOf('_') + 1);
+  var pages_content = document.getElementById(pages_content_id).innerHTML;
+  var max_pages = pages_content.substr (pages_content.lastIndexOf('/') + 1);
+  var cur_page  = pages_content.substring (pages_content.lastIndexOf(' ') + 1, pages_content.lastIndexOf('/'));
+  max_pages = Number (max_pages);
+  cur_page  = Number (cur_page);
+  if (cur_page < max_pages) {
+    var div_paged = obj.parentNode.parentNode.id;
+    var i;
+    var x = document.getElementsByClassName(div_paged + '_' + (cur_page - 1));
+    for (i = 0; i < x.length; i++) {
+      x[i].classList.toggle('_paged_hidden');
+    }
+    x = document.getElementsByClassName(div_paged + '_' + cur_page);
+    for (i = 0; i < x.length; i++) {
+      x[i].classList.toggle('_paged_hidden');
+    }
+    document.getElementById(pages_content_id).textContent = "Page " + (cur_page + 1) + "/" + max_pages;
+  }
+}
+// Function for tree table
+function _click_treed(obj) {
+  if (obj.innerHTML == "\u25BA") {
+    obj.textContent = "\u25BC";
+    // Open childs
+    var x = document.getElementsByClassName(obj.parentNode.parentNode.id);
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.toggle('_treed_hidden');
+    }
+  }
+  else {
+    obj.textContent = "\u25BA";
+    // Close all childs
+    var trs = document.getElementsByTagName('tr');
+    var r   = obj.parentNode.parentNode.id+'_';
+    var re  = new RegExp (r, "g");
+    for (var i = 0; i < trs.length; i++) {
+      var s = trs[i].id+""
+      if (s.match(re)) {
+        var o = document.getElementById(s);
+        if (! o.classList.contains('_treed_hidden')) {
+          o.classList.toggle('_treed_hidden');
+        }
+        if (o.firstChild.firstChild.textContent == "\u25BC") {
+          o.firstChild.firstChild.textContent = "\u25BA";
+        }
+        if (o.firstChild.childNodes.length == 3) {
+          o.firstChild.childNodes[2].textContent = '+';
+        }
+      }
+    }
+    if (obj.parentNode.childNodes.length == 3) {
+      obj.parentNode.childNodes[2].textContent = '+';
+    }
+  }
+}
+function _click_expand (obj) {
+  var trs = document.getElementsByTagName('tr');
+  var r   = obj.parentNode.parentNode.id+'_';
+  var re  = new RegExp (r, "g");
+  // Symbole + => expand all
+  if (obj.textContent == "+") {
+    for (var i = 0; i < trs.length; i++) {
+      var s = trs[i].id+"";
+      if (s.match(re)) {
+        var o = document.getElementById(s);
+        if (o.classList.contains('_treed_hidden')) {
+           o.classList.toggle('_treed_hidden');
+        }
+        if (o.firstChild.firstChild.textContent == "\u25BA") {
+          o.firstChild.firstChild.textContent = "\u25BC";
+        }
+        if (o.firstChild.childNodes.length == 3) {
+          o.firstChild.childNodes[2].textContent = '\u2010';
+        }
+      }
+    }
+    var o = obj.parentNode.parentNode;
+    if (o.firstChild.firstChild.textContent == "\u25BA") {
+      o.firstChild.firstChild.textContent = "\u25BC";
+    }
+    obj.textContent = "\u2010";
+  }
+  // Symbole - => collapse all
+  else {
+    for (var i = 0; i < trs.length; i++) {
+      var s = trs[i].id+"";
+      if (s.match(re)) {
+        var o = document.getElementById(s);
+        if (! o.classList.contains('_treed_hidden')) {
+           o.classList.toggle('_treed_hidden');
+        }
+        if (o.firstChild.firstChild.textContent == "\u25BC") {
+          o.firstChild.firstChild.textContent = "\u25BA";
+        }
+        if (o.firstChild.childNodes.length == 3) {
+          o.firstChild.childNodes[2].textContent = '+';
+        }
+      }
+    }
+    var o = obj.parentNode.parentNode;
+    if (o.firstChild.firstChild.textContent == "\u25BC") {
+      o.firstChild.firstChild.textContent = "\u25BA";
+    }
+    obj.textContent = "+";
+  }
+}
+// Hide unselected tabs
+addLoadEvent(function(){
+  var x = document.getElementsByClassName("_tab_header_li");
+  for (var i = 0; i < x.length; i++) {
+    if (x[i].classList.contains("selected_tab") == false) {
+      var e = document.getElementById (x[i].dataset.tab);
+      e.style.display = "none";
+    }
+  }
+});
+// Change tab
+function change_tab (e, baseId) {
+  // Handle tabs
+  var i = 1;
+  while (true) {
+    var id = baseId + i;
+    var t = document.getElementById (id);
+    if (t == null) {
+      break;
+    }
+    if (id == e.dataset.tab) {
+      t.style.removeProperty("display");
+    }
+    else {
+      t.style.display = "none";
+    }
+    i = i + 1;
+  }
+  // Handle headers
+  $(e).siblings().each( function () {
+    this.classList.remove("selected_tab");
+  });
+  e.classList.add("selected_tab");
+}
+</script>
+</body>
+</html>
