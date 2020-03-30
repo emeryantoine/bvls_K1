@@ -1,3 +1,4 @@
+SEMAINE 1
 Jour 1 : lecture 2 papier, 1 papier sur comment on utilise le code INPOP pour les ephemerides plnetaires et pour les asteroide, comment on determine leur taille, masse, rayon etc
 un autre papier sur la doc de BVLS, ecrit en fortran qui est un element principale du code de calcul et qu'il faudrait donc acccelerer d'une maniere ou d'une autre. debut de la prise em main du code, tentative de le faire fonctionner avec des entree de base avant de pouvoir voir comment ameliorer tout ca
 Jour 2 : En cours de faire fonctionner le code avec le K1 restreint, setup des parametres, remise a niveau en fortran, indexisation commence a 1 /!\ lire dans des fichiers avec fortran est complique. Interface main-BVLS fonctionne pour le K1, debut d'optimisations. Passage dans maqao, petites ameliorations dans la facon dont c'est compile. attention a bien mettre la bonne archi. en changeant la ligne de commande de simple a optimise, on gagne 50% de perf deja. maintenant je vais vraiment rentrer
@@ -19,4 +20,8 @@ pour profiler le code
 maqao lprof -dl -df of=html xp=<nom du fichier output de haut dessus>
 pour creer un html lisible qu'il faut ensuite ouvrir.
 Voir le rapport maqao du 27 mars a cote pour comprendre la suite des analyses (l'ancien rapport cqa inutile a ete suppr)
-Il faurdra re profiler en profillant les fonctions et les loops, ca fera 2 rapports different mais ca devrait etre good
+Il faurdra re profiler en profillant les fonctions et les loops, ca fera 2 rapports different mais ca devrait etre good.
+
+
+SEMAINE 2
+JOUR 6 : Retour apres week end, le code est ope a etre ameliore, premiere opti serait de vectoriser les boucles en prenant en compte la taille des caches. A priori la RAM sera suffisante pour tout garder en memoire a la fois. Mise en pratique de la vecto apres analyse plus profonde avec maqao est les boucles.

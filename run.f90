@@ -127,7 +127,7 @@ if (verif) then
   do i=1,75
       read(3,*) check
       if (i /= 1) then
-        abserr = min(check, X(i-1))/max(check, X(i-1))
+        abserr = max(check, X(i-1))/min(check, X(i-1))
         print*, check, X(i-1), abserr
         if (abserr < errmax) then
           errmax = abserr
