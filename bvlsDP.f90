@@ -429,8 +429,13 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
    IF(ABS(NORM) > ZERO) THEN
       DO JZ=IZ1,IZ2 
          JJ=INDEX(JZ)
+         !TODO
          SM=DOT_PRODUCT(A(NSETP:M,J)/NORM, A(NSETP:M,JJ))/UP
-         A(NSETP:M,JJ)=A(NSETP:M,JJ)+SM*A(NSETP:M,J)
+         !modified loop
+         !A(NSETP:M,JJ)=A(NSETP:M,JJ)+SM*A(NSETP:M,J)
+           do i=NSETP,M
+            A(i,JJ) =A(i,JJ) + (SM*A(i,J))
+           end do
       END DO
    A(NSETP,J)=NORM
    END IF
@@ -443,7 +448,13 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
 !
 !   Solve the triangular system.  Store this solution temporarily in Z().
    DO I = NSETP, 1, -1
-      IF  (I  /=  NSETP) Z(1:I)=Z(1:I)-A(1:I,II)*Z(I+1)
+      IF  (I  /=  NSETP) then
+        !modified loop
+        !Z(1:I)=Z(1:I)-A(1:I,II)*Z(I+1)
+        do j=1,I
+          Z(j) = Z(j) - (A(j,II)*Z(I+1))
+        end do
+      end if
       II=INDEX(I)   
       Z(I)=Z(I)/A(I,II) 
    END DO 
@@ -510,7 +521,13 @@ SUBROUTINE TEST_SET_P_AGAINST_CONSTRAINTS
       Z(1:M)=B(1:M)
 !   
       DO I = NSETP, 1, -1
-         IF  (I  /=  NSETP) Z(1:I)=Z(1:I)-A(1:I,II)*Z(I+1)
+         IF  (I  /=  NSETP) then
+           !modified loop
+           !Z(1:I)=Z(1:I)-A(1:I,II)*Z(I+1)
+           do j=1,I
+            Z(j) = Z(j) - (A(j,II)*Z(I+1))
+           end do
+         endif
          II=INDEX(I)
          Z(I)=Z(I)/A(I,II)  
       END DO
@@ -559,7 +576,13 @@ END SUBROUTINE!( SEE IF ALL CONSTRAINED COEFFS ARE FEASIBLE )
 SUBROUTINE MOVE_COEF_I_FROM_SET_P_TO_SET_Z
 !   
    X(I)=BND(IBOUND,I)
-   IF  (abs(X(I))   >  ZERO .and.  JJ > 0) B(1:JJ)=B(1:JJ)-A(1:JJ,I)*X(I)
+   IF  (abs(X(I))   >  ZERO .and.  JJ > 0) then
+     !modified loop
+     !B(1:JJ)=B(1:JJ)-A(1:JJ,I)*X(I)
+     do j=1,JJ
+      B(j) = B(j) - (A(j,I)*X(I))
+     enddo
+   endif
 
 !   The following loop can be null.
    DO J = JJ+1, NSETP 
@@ -572,7 +595,9 @@ SUBROUTINE MOVE_COEF_I_FROM_SET_P_TO_SET_Z
 !   side.  One row is moved to the scratch array S and then the updates
 !   are computed.  The intent is for array operations to be performed 
 !   and minimal extra data movement.  One extra rotation is applied 
-!   to column II in this approach. 
+!   to column II in this approach.
+
+      !TODO TODO TODO TODO
       S=A(J-1,1:N); A(J-1,1:N)=CC*S+SS*A(J,1:N); A(J,1:N)=CC*A(J,1:N)-SS*S
       A(J-1,II)=SM; A(J,II)=ZERO
       SM=B(J-1); B(J-1)=CC*SM+SS*B(J); B(J)=CC*B(J)-SS*SM
@@ -593,7 +618,11 @@ SUBROUTINE TERMINATION
       IF  (NPP1   <=   M) then 
          SM=NRM2(B(NPP1:M))
       else  
-         W(1:N)=ZERO
+        !modified loop 
+        !W(1:N)=ZERO
+        do i=1,N
+          W(i) = 0D0
+        end do
       END IF
       RNORM=SM
    END IF! ( IERR...) 

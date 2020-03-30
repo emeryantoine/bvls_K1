@@ -24,4 +24,6 @@ Il faurdra re profiler en profillant les fonctions et les loops, ca fera 2 rappo
 
 
 SEMAINE 2
-JOUR 6 : Retour apres week end, le code est ope a etre ameliore, premiere opti serait de vectoriser les boucles en prenant en compte la taille des caches. A priori la RAM sera suffisante pour tout garder en memoire a la fois. Mise en pratique de la vecto apres analyse plus profonde avec maqao est les boucles.
+JOUR 6 : Retour apres week end, le code est ope a etre ameliore, premiere opti serait de vectoriser les boucles en prenant en compte la taille des caches. A priori la RAM sera suffisante pour tout garder en memoire a la fois. Mise en pratique de la vecto apres analyse plus profonde avec maqao est les boucles. essai rate de remplacement des boucles, 2eme essai en cours, a un endroit le remplacement a errone les resultats. La methodes devrai etre bonne, surement erreur d'indice
+quelque part, recommence en prenant soit de verifier chaque etape. je repoars de git log <go>. Apres avoir remplace toute les boucles implicites par des boucles explicites, aucune difference notable dans les perf, le compilo ne vectorise toujours pas, il va falloir retravailler les boucles et surement chercher des options de compilation pour le forcer a faire ce qu'om veut
+
