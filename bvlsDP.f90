@@ -273,13 +273,20 @@ IERR = 0
          else   
             IERR = 3   
             RETURN   
+      !modified loops
          END IF! ( RANGE:.) 
    END IF
 !
       IF  ( abs(X(J))   >   ZERO ) then 
 !
 !   Change B() to reflect a nonzero starting value for X(J). 
-         B(1:M)=B(1:M)-A(1:M,J)*X(J) 
+      !modofied loop  
+      !B(1:M)=B(1:M)-A(1:M,J)*X(J) 
+      
+      do i=1,M
+        B(i) = B(i) -A(i,J)*X(J)
+      end do
+    
       END IF
       IZ=IZ+1 
    END DO! ( IZ   <=   IZ2 )
@@ -320,7 +327,8 @@ SUBROUTINE  SELECT_ANOTHER_COEFF_TO!_SOLVE_FOR
      IF  ( FREE ) then   
         CALL TEST_COEF_J_FOR_DIAG!_ELT_AND_DIRECTION_OF_CHANGE
      else
-!   Compute dual coefficient W(J).   
+!   Compute dual coefficient W(J).
+            !TODO
            W(J)=dot_product(A(NPP1:M,J),B(NPP1:M))  
 !
 !   Can X(J) move in the direction indicated by the sign of W(J)?
@@ -343,22 +351,38 @@ SUBROUTINE TEST_COEF_J_FOR_DIAG!_ELT_AND_DIRECTION_OF_CHANGE
 !   Begin the transformation and check new diagonal element to avoid
 !   near linear dependence.   
 !   
-   ASAVE=A(NPP1,J)   
+   ASAVE=A(NPP1,J)
+   !TODO
    call HTC (NPP1, A(1:M,J), UP)
    UNORM = NRM2(A(1:NSETP,J))
    IF  ( abs(A(NPP1,J)) > EPS * UNORM) then
 !
 !   Column J is sufficiently independent.  Copy b into Z, update Z.
-      Z(1:M)=B(1:M)
+      !modified loop
+      !Z(1:M)=B(1:M)
+      do i = 1,M
+        Z(i) = B(i)
+      end do
 ! Compute product of transormation and updated right-hand side.
       NORM=A(NPP1,J); A(NPP1,J)=UP
       IF(ABS(NORM) > ZERO) THEN
+         !TODO
          SM=DOT_PRODUCT(A(NPP1:M,J)/NORM, Z(NPP1:M))/UP
-         Z(NPP1:M)=Z(NPP1:M)+SM*A(NPP1:M,J)
+         !modified loop
+         !Z(NPP1:M)=Z(NPP1:M)+SM*A(NPP1:M,J)
+         do i=NPP1,M
+          Z(i) = Z(i)+(SM*A(i,J))
+         end do
          A(NPP1,J)=NORM
       END IF
 
-      IF  (abs(X(J)) >  ZERO) Z(1:NPP1)=Z(1:NPP1)+A(1:NPP1,J)*X(J)
+      !modified loop  
+      !Z(1:NPP1)=Z(1:NPP1)+A(1:NPP1,J)*X(J)
+      IF  (abs(X(J)) >  ZERO) then
+        do i=1,NPP1
+          Z(i)=Z(i)+A(i,J)*X(J)
+        end do
+      endif
 !   Adjust Z() as though X(J) had been reset to zero. 
       IF  ( FREE ) then   
          FIND = .TRUE.  
@@ -388,8 +412,13 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
 !   The index  J=index(IZ)  has been selected to be moved from
 !   set Z to set P.  Z() contains the old B() adjusted as though X(J) = 0.  
 !   A(*,J) contains the new Householder transformation vector.    
-   B(1:M)=Z(1:M)
-!
+    !modified loop
+    !B(1:M)=Z(1:M)
+
+    do i=1,M
+      B(i) = Z(i)
+    end do
+
    INDEX(IZ)=INDEX(IZ1)  
    INDEX(IZ1)=J  
    IZ1=IZ1+1 

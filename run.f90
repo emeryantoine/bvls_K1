@@ -129,11 +129,11 @@ if (verif) then
       if (i /= 1) then
         abserr = max(check, X(i-1))/min(check, X(i-1))
         print*, check, X(i-1), abserr
-        if (abserr < errmax) then
+        if (abserr > errmax) then
           errmax = abserr
         endif
       else
-        print*, "valeur chi2 :", check, CHI2/141970, (CH2/141970)-check
+        print*, "valeur chi2 :", check, CHI2/141970, (CHI2/141970)-check
       end if
   end do
 print *, "err max is : ", errmax
