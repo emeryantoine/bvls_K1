@@ -230,9 +230,22 @@ IERR = 0
 !TODO REMOVE COMMENT BELOW FOR INFO DURING EXEC
 !print*,IERR,EPS,ITMAX,ITER
 !   Initialize the array index().  
-   DO I=1,N
+   
+   !optimized /!\
+   idx : DO I=1,N - modulo(N,8),8
       INDEX(I)=I
-   END DO
+      INDEX(I+1)=I+1
+      INDEX(I+2)=I+2
+      INDEX(I+3)=I+3
+      INDEX(I+4)=I+4
+      INDEX(I+5)=I+5
+      INDEX(I+6)=I+6
+      INDEX(I+7)=I+7
+   END DO idx
+   do i=N - modulo(N,8) + 1, N
+      INDEX(i) = i
+   end do
+
 !   
    IZ2=N 
    IZ1=1 
@@ -240,6 +253,7 @@ IERR = 0
    NPP1=1
 !   
 !   Begin:  Loop on IZ to initialize  X().
+!TODO
    IZ=IZ1
    DO
       IF  (IZ  >  IZ2 ) EXIT
@@ -282,11 +296,22 @@ IERR = 0
 !   Change B() to reflect a nonzero starting value for X(J). 
       !modofied loop  
       !B(1:M)=B(1:M)-A(1:M,J)*X(J) 
-      
-      do i=1,M
+      !optimized loop /!\ 
+      do i=1,M-modulo(M,8), 8
+        B(i) = B(i) -A(i,J)*X(J)
+        B(i+1) = B(i+1) -A(i+1,J)*X(J)
+        B(i+2) = B(i+2) -A(i+2,J)*X(J)
+        B(i+3) = B(i+3) -A(i+3,J)*X(J)
+        B(i+4) = B(i+4) -A(i+4,J)*X(J)
+        B(i+5) = B(i+5) -A(i+5,J)*X(J)
+        B(i+6) = B(i+6) -A(i+6,J)*X(J)
+        B(i+7) = B(i+7) -A(i+7,J)*X(J)
+      end do
+
+      do i=M-modulo(M,8) + 1, M
         B(i) = B(i) -A(i,J)*X(J)
       end do
-    
+
       END IF
       IZ=IZ+1 
    END DO! ( IZ   <=   IZ2 )
@@ -358,9 +383,19 @@ SUBROUTINE TEST_COEF_J_FOR_DIAG!_ELT_AND_DIRECTION_OF_CHANGE
    IF  ( abs(A(NPP1,J)) > EPS * UNORM) then
 !
 !   Column J is sufficiently independent.  Copy b into Z, update Z.
-      !modified loop
+      !modified loop optimized
       !Z(1:M)=B(1:M)
-      do i = 1,M
+      do i = 1,M-modulo(M,8), 8
+        Z(i) = B(i)
+        Z(i+1) = B(i+1)
+        Z(i+2) = B(i+2)
+        Z(i+3) = B(i+3)
+        Z(i+4) = B(i+4)
+        Z(i+5) = B(i+5)
+        Z(i+6) = B(i+6)
+        Z(i+7) = B(i+7)
+      end do
+      do i = M-modulo(M,8) + 1, M
         Z(i) = B(i)
       end do
 ! Compute product of transormation and updated right-hand side.
@@ -368,18 +403,39 @@ SUBROUTINE TEST_COEF_J_FOR_DIAG!_ELT_AND_DIRECTION_OF_CHANGE
       IF(ABS(NORM) > ZERO) THEN
          !TODO
          SM=DOT_PRODUCT(A(NPP1:M,J)/NORM, Z(NPP1:M))/UP
-         !modified loop
+         !modified loop, optimized
          !Z(NPP1:M)=Z(NPP1:M)+SM*A(NPP1:M,J)
-         do i=NPP1,M
+         do i=NPP1,M - modulo(M-NPP1,8), 8
           Z(i) = Z(i)+(SM*A(i,J))
+          Z(i+1) = Z(i+1)+(SM*A(i+1,J))
+          Z(i+2) = Z(i+2)+(SM*A(i+2,J))
+          Z(i+3) = Z(i+3)+(SM*A(i+3,J))
+          Z(i+4) = Z(i+4)+(SM*A(i+4,J))
+          Z(i+5) = Z(i+5)+(SM*A(i+5,J))
+          Z(i+6) = Z(i+6)+(SM*A(i+6,J))
+          Z(i+7) = Z(i+7)+(SM*A(i+7,J))
          end do
+         do i=M-modulo(M-NPP1, 8) + 1, M
+           Z(i) = Z(i)+(SM*A(i,J))
+         end do
+
          A(NPP1,J)=NORM
       END IF
 
-      !modified loop  
+      !modified loop,optimized  
       !Z(1:NPP1)=Z(1:NPP1)+A(1:NPP1,J)*X(J)
       IF  (abs(X(J)) >  ZERO) then
-        do i=1,NPP1
+        do i=1,NPP1-modulo(NPP1,8),8
+          Z(i)=Z(i)+A(i,J)*X(J)
+          Z(i+1)=Z(i+1)+A(i+1,J)*X(J)
+          Z(i+2)=Z(i+2)+A(i+2,J)*X(J)
+          Z(i+3)=Z(i+3)+A(i+3,J)*X(J)
+          Z(i+4)=Z(i+4)+A(i+4,J)*X(J)
+          Z(i+5)=Z(i+5)+A(i+5,J)*X(J)
+          Z(i+6)=Z(i+6)+A(i+6,J)*X(J)
+          Z(i+7)=Z(i+7)+A(i+7,J)*X(J)
+        end do
+        do i=NPP1 - modulo(NPP1,8) + 1, NPP1
           Z(i)=Z(i)+A(i,J)*X(J)
         end do
       endif
@@ -412,10 +468,20 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
 !   The index  J=index(IZ)  has been selected to be moved from
 !   set Z to set P.  Z() contains the old B() adjusted as though X(J) = 0.  
 !   A(*,J) contains the new Householder transformation vector.    
-    !modified loop
+    !modified loop optimized
     !B(1:M)=Z(1:M)
 
-    do i=1,M
+    do i=1, M - modulo(M,8),8
+      B(i) = Z(i)
+      B(i+1) = Z(i+1)
+      B(i+2) = Z(i+2)
+      B(i+3) = Z(i+3)
+      B(i+4) = Z(i+4)
+      B(i+5) = Z(i+5)
+      B(i+6) = Z(i+6)
+      B(i+7) = Z(i+7)
+    end do
+    do i= M - modulo(M,8) + 1,M
       B(i) = Z(i)
     end do
 
@@ -431,27 +497,47 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
          JJ=INDEX(JZ)
          !TODO
          SM=DOT_PRODUCT(A(NSETP:M,J)/NORM, A(NSETP:M,JJ))/UP
-         !modified loop
+         !modified loop optimiwed ERROR IN VECTORISATION HERE
          !A(NSETP:M,JJ)=A(NSETP:M,JJ)+SM*A(NSETP:M,J)
-           do i=NSETP,M
-            A(i,JJ) =A(i,JJ) + (SM*A(i,J))
+           do i=NSETP, M
+              A(i,JJ)=A(i,JJ)+SM*A(i,J)
            end do
       END DO
    A(NSETP,J)=NORM
    END IF
-!   The following loop can be null.
-   DO L=NPP1,M   
+!   The following loop can be null. optimized
+   DO L=NPP1, M - modulo(M - NPP1, 8), 8  
       A(L,J)=ZERO
+      A(L+1,J)=ZERO
+      A(L+2,J)=ZERO
+      A(L+3,J)=ZERO
+      A(L+4,J)=ZERO
+      A(L+5,J)=ZERO
+      A(L+6,J)=ZERO
+      A(L+7,J)=ZERO
    END DO!  L
+   do i=M - modulo(M - NPP1, 8) + 1, M
+    A(i,J)=ZERO
+   end do
 !
    W(J)=ZERO 
 !
 !   Solve the triangular system.  Store this solution temporarily in Z().
    DO I = NSETP, 1, -1
       IF  (I  /=  NSETP) then
-        !modified loop
+        !modified loop optimized
         !Z(1:I)=Z(1:I)-A(1:I,II)*Z(I+1)
-        do j=1,I
+        do j=1, I - modulo(I, 8), 8
+          Z(j) = Z(j) - (A(j,II)*Z(I+1))
+          Z(j+1) = Z(j+1) - (A(j+1,II)*Z(I+1))
+          Z(j+2) = Z(j+2) - (A(j+2,II)*Z(I+1))
+          Z(j+3) = Z(j+3) - (A(j+3,II)*Z(I+1))
+          Z(j+4) = Z(j+4) - (A(j+4,II)*Z(I+1))
+          Z(j+5) = Z(j+5) - (A(j+5,II)*Z(I+1))
+          Z(j+6) = Z(j+6) - (A(j+6,II)*Z(I+1))
+          Z(j+7) = Z(j+7) - (A(j+7,II)*Z(I+1))
+        end do
+        do j= I - modulo(I, 8) + 1, I
           Z(j) = Z(j) - (A(j,II)*Z(I+1))
         end do
       end if
@@ -518,7 +604,11 @@ SUBROUTINE TEST_SET_P_AGAINST_CONSTRAINTS
       END DO
 !
 !   Copy B( ) into Z( ).  Then solve again and loop back. 
-      Z(1:M)=B(1:M)
+      !modified and optimized loop
+      !Z(1:M)=B(1:M)
+      do i=1,M
+        Z(i) = B(i)
+      end do
 !   
       DO I = NSETP, 1, -1
          IF  (I  /=  NSETP) then
