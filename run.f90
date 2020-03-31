@@ -7,7 +7,7 @@ INTERFACE
    END SUBROUTINE
 END INTERFACE
 
-logical :: debug = .FALSE., verif = .true.
+logical :: debug = .FALSE., verif = .falSE.
 integer, parameter :: width = 74
 integer, parameter :: height = 141970
 
@@ -31,6 +31,8 @@ allocate(W(width))
 allocate(X(width))
 allocate(INDEX(height))
 allocate(tmp(width+3))
+
+BIGLOOP : do h=1, 20
 
 open(1, file='BND.out.20', status='old', action='read')
 
@@ -97,6 +99,7 @@ call system_clock(start)
   call bvls(A, B, BND, X, CHI2, NSETP, W, INDEX, IEER) 
 
 call system_clock(stop)
+tot = tot+(stop-start)
 
 
 if (IEER /= 0) then
@@ -142,5 +145,9 @@ end if
 
 
 close (3)
+
+end do BIGLOOP
+
+print *, tot/20
 
 END PROGRAM main
