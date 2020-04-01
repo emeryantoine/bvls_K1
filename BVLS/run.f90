@@ -7,21 +7,21 @@ INTERFACE
    END SUBROUTINE
 END INTERFACE
 
-logical :: debug = .FALSE., verif = .falSE.
+logical :: debug = .FALSE., verif = .true.
 integer, parameter :: width = 74
 integer, parameter :: height = 141970
 
 !raw -> 74 x 141970 
 real(kind=8), dimension(:),allocatable :: tmp
 
-real(kind=8) :: CHI2, check, abserr, errmax = 0.000000000001
+real(kind=8) :: CHI2, check, abserr, errmax = 0.000000000001, fact = 1
 integer :: NSETP
 real(kind=8), dimension(:,:),allocatable :: BND
 real(kind=8), dimension(:,:),allocatable :: A
 real(kind=8), dimension(:),allocatable :: B
 real(kind=8), dimension(:),allocatable :: W, X
 integer, dimension(:),allocatable :: INDEX
-integer :: err, start, stop
+integer :: err, start, stop, repeats = 1
 
 
 allocate(A(height, width))
@@ -32,7 +32,7 @@ allocate(X(width))
 allocate(INDEX(height))
 allocate(tmp(width+3))
 
-BIGLOOP : do h=1, 20
+BIGLOOP : do h=1, repeats
 
 open(1, file='BND.out.20', status='old', action='read')
 
@@ -96,7 +96,7 @@ endif
 
 call system_clock(start)
 
-  call bvls(A, B, BND, X, CHI2, NSETP, W, INDEX, IEER) 
+  call bvls(A*fact, B*fact, BND*fact, X, CHI2, NSETP, W, INDEX, IEER) 
 
 call system_clock(stop)
 tot = tot+(stop-start)
@@ -131,7 +131,7 @@ if (verif) then
       read(3,*) check
       if (i /= 1) then
         abserr = max(check, X(i-1))/min(check, X(i-1))
-        print*, check, X(i-1), abserr
+        print*, check * fact, X(i-1), abserr
         if (abserr > errmax) then
           errmax = abserr
         endif
@@ -148,6 +148,6 @@ close (3)
 
 end do BIGLOOP
 
-print *, tot/20
+print *, tot/repeats
 
 END PROGRAM main

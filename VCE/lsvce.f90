@@ -25,8 +25,8 @@ real(kind=8), dimension(2,2) :: Nmat,INmat
 real(kind=8), dimension(2) :: ll,newsig
 real(kind=8), parameter :: ua=1.5e11
 
-open(355,file="RA.out",status="old")
-do i=1,nfull
+open(355,file="./RAW_20.out",status="old")
+do i=1,75
 read(355,*)dat,wpond,omcF,(AF(j),j=1,m)
   if(i.le.n1)then
         omc1(i)=omcF
