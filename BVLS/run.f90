@@ -21,7 +21,7 @@ real(kind=8), dimension(:,:),allocatable :: A
 real(kind=8), dimension(:),allocatable :: B
 real(kind=8), dimension(:),allocatable :: W, X
 integer, dimension(:),allocatable :: INDEX
-integer :: err, start, stop, repeats = 1
+integer :: err, start, stop, repeats = 1,h
 
 
 allocate(A(height, width))
@@ -92,11 +92,15 @@ if (debug) then
   print *, size(B), size(x), size(BND,1), SIZE(BND,2), size(W), size(INDEX), "M",size(A,1), "N",size(A,2)
 endif
 
+A(1:height,1:width) = A(1:height, 1:width) * fact
+B(1:height) = B(1:height) * fact
+!BND(1:2,1:width) = BND(1:2,1:width) * fact
+
 !print *, "values in run : ", B(2), A(2,2)
 
 call system_clock(start)
 
-  call bvls(A*fact, B*fact, BND*fact, X, CHI2, NSETP, W, INDEX, IEER) 
+  call bvls(A, B, BND, X, CHI2, NSETP, W, INDEX, IEER) 
 
 call system_clock(stop)
 tot = tot+(stop-start)

@@ -8,25 +8,27 @@ real(kind=8), dimension(n1+n2,m)::At
 real(kind=8), dimension(n1) :: omc1
 real(kind=8), dimension(n2) :: omc2
 real(kind=8), dimension(m) :: AF
-real(kind=8), dimension(n1+n2) :: omct,S,E,E1,E12,E21,E121,E122,tomct
-real(kind=8), dimension(2*n1+2*n2) :: Wk
+real(kind=8), dimension(n1+n2) :: omct,E,E1,E12,E21,E121,E122,tomct
 real(kind=8) :: dat,wpond,c1,c2,trace,omcf
 real(kind=8), dimension(n1,n1) :: Q11
 real(kind=8), dimension(n2,n1) :: Q10
 real(kind=8), dimension(n2+n1,n1) :: Q111
 real(kind=8), dimension(n2+n1,n2) :: Q01
-real(kind=8), dimension(n2+n1,n2+n1) :: Q1,Q2,QY,IQY,aa,ab,mN22,mN21
+! real(kind=8), dimension(n2+n1,n2+n1) :: Q1,Q2,QY,IQY,aa,ab,mN22,mN21
+!real(kind=8), dimension(n2+n1,n2+n1) :: NN5,paortho,DNN5,matr,mq1,mq2
+!real(kind=8), dimension(n2+n1,n2+n1) :: mN11,mN12
+real(kind=8), allocatable, dimension(:,:) :: Q1,Q2,QY,IQY,aa,ab,mN22,mN21
+real(kind=8), allocatable, dimension(:,:) :: NN5,paortho,DNN5,matr,mq1,mq2
+real(kind=8), allocatable, dimension(:,:) :: mN11,mN12
 real(kind=8), dimension(m,m) :: NN3,NN4
 real(kind=8), dimension(n2+n1,m) :: NN2
-real(kind=8), dimension(n2+n1,n2+n1) :: NN5,paortho,DNN5,matr,mq1,mq2
-real(kind=8), dimension(n2+n1,n2+n1) :: mN11,mN12
 real(kind=8), dimension(m,n2+n1) :: NN1,tAt,Nqy
 real(kind=8), dimension(2,2) :: Nmat,INmat
 real(kind=8), dimension(2) :: ll,newsig
 real(kind=8), parameter :: ua=1.5e11
 
-open(355,file="./RAW_20.out",status="old")
-do i=1,75
+open(355,file="../RA.out",status="old")
+do i=1,nfull
 read(355,*)dat,wpond,omcF,(AF(j),j=1,m)
   if(i.le.n1)then
         omc1(i)=omcF
@@ -68,6 +70,11 @@ enddo
 ! =======================     
 ! remplissages des Q ===============
 !
+allocate(Q1(n1+n2,n1+n2))
+allocate(Q2(n1+n2,n1+n2))
+allocate(QY(n1+n2,n1+n2))
+allocate(IQY(n1+n2,n1+n2))
+
 Q1=0d0
 do i=1,n1
  Q1(i,i)=1d0
@@ -104,8 +111,11 @@ do i=1,n1+n2
    enddo
 enddo
 
+deallocate(Q1)
+deallocate(Q2)
 
 tAT=TRANSPOSE(At)
+
 
 NN1=MATMUL(tAt,IQY)
 NN2=MATMUL(IQY,At)
@@ -123,6 +133,9 @@ print*,'NN4 ===='
 !print*,(NN4(j,i),j=1,m)
 !enddo
 
+allocate(NN5(n1+n2,n1+n2))
+allocate(DNN5(n1+n2,n1+n2))
+allocate(paortho(n1+n2,n1+n2))
 
 NN5=MATMUL(At,Nqy)
 DNN5=0d0
@@ -137,6 +150,9 @@ do i=1,n1+n2
   enddo
 enddo
 
+deallocate(NN5)
+deallocate(DNN5)
+
 E=MATMUL(paortho,omct)
 do i=1,n1+n2
 !print*,e(i),omct(i)
@@ -144,14 +160,40 @@ enddo
 matr=MATMUL(IQY,paortho)
 print*,'matr'
 
+deallocate(paortho)
+
+allocate(Q1(n1+n2,n1+n2))
+allocate(Q2(n1+n2,n1+n2))
+Q1=0d0
+do i=1,n1
+ Q1(i,i)=1d0
+enddo
+!print*,'Q1====='
+Q2=0d0
+do i=n2+1,n1+n2
+Q2(i,i)=1d0
+enddo
+
+allocate(mq1(n1+n2,n1+n2))
+allocate(mq2(n1+n2,n1+n2))
 
 mq1=MATMUL(Q1,matr)
 mq2=MATMUL(Q2,matr)
-print*,'mQ'
+!print*,'mQ'
+
+allocate(aa(n1+n2,n1+n2))
+allocate(ab(n1+n2,n1+n2))
 
 aa=MATMUL(matr,mq1)
-
 ab=MATMUL(matr,mq2)
+
+deallocate(mq1)
+deallocate(mq2)
+
+allocate(mN11(n1+n2,n1+n2))
+allocate(mN12(n1+n2,n1+n2))
+allocate(mN21(n1+n2,n1+n2))
+allocate(mN22(n1+n2,n1+n2))
 
 print*,'mN'
 mN11=MATMUL(Q1,aa)
@@ -159,6 +201,8 @@ mN12=MATMUL(Q1,ab)
 mN22=MATMUL(Q2,ab)
 mN21=MATMUL(Q2,aa)
 
+deallocate(aa)
+deallocate(ab)
 
 print*,'Nmat-trace'
 Nmat(1,1)=0.5d0*trace(mN11,n1+n2)
@@ -167,6 +211,10 @@ Nmat(2,2)=0.5d0*trace(mN22,n1+n2)
 Nmat(2,1)=0.5d0*trace(mN21,n1+n2)
 print*,'Nmat'
 !print*,Nmat(1,1),Nmat(1,2),Nmat(2,1),Nmat(2,2)
+deallocate(mN11)
+deallocate(mN21)
+deallocate(mN22)
+deallocate(mN12)
 
 !CALL LGINF(Nmat,2,2,2,0,INmat,2,S,WK,IER)
 call inverse(Nmat,INmat,2)
