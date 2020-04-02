@@ -1,6 +1,6 @@
 ! ifort -O3 lsvce.f90 -o lsvce ; lsvce
 implicit none
-integer :: i,k,j,IA,IER
+integer :: i,k,j,IA,IER, t1, t0
 integer, parameter:: n1=300,m=12,n2=300,nskip=21996,nfull=40236
 real(kind=8), dimension(n1,m)::A1
 real(kind=8), dimension(n2,m)::A2
@@ -27,7 +27,28 @@ real(kind=8), dimension(2,2) :: Nmat,INmat
 real(kind=8), dimension(2) :: ll,newsig
 real(kind=8), parameter :: ua=1.5e11
 
-open(355,file="../RA.out",status="old")
+!allocation =======================================
+allocate(mN11(n1+n2,n1+n2))
+allocate(mN12(n1+n2,n1+n2))
+allocate(mN21(n1+n2,n1+n2))
+allocate(mN22(n1+n2,n1+n2))
+allocate(Q1(n1+n2,n1+n2))
+allocate(Q2(n1+n2,n1+n2))
+allocate(QY(n1+n2,n1+n2))
+allocate(IQY(n1+n2,n1+n2))
+allocate(NN5(n1+n2,n1+n2))
+allocate(DNN5(n1+n2,n1+n2))
+allocate(paortho(n1+n2,n1+n2))
+allocate(matr(n1+n2, n1+n2))
+allocate(aa(n1+n2,n1+n2))
+allocate(ab(n1+n2,n1+n2))
+allocate(mq1(n1+n2,n1+n2))
+allocate(mq2(n1+n2,n1+n2))
+!===================================================
+
+call system_clock(t0)
+
+open(355,file="../../transfert/RA.out",status="old")
 do i=1,nfull
 read(355,*)dat,wpond,omcF,(AF(j),j=1,m)
   if(i.le.n1)then
@@ -47,7 +68,7 @@ close(355)
 omc1=omc1
 omc2=omc2
 
-print*,"======A=====",ua
+!print*,"======A=====",ua
 do i=1,n2
 !print*,(A2(i,1)),A2(i,m)
 enddo
@@ -70,10 +91,7 @@ enddo
 ! =======================     
 ! remplissages des Q ===============
 !
-allocate(Q1(n1+n2,n1+n2))
-allocate(Q2(n1+n2,n1+n2))
-allocate(QY(n1+n2,n1+n2))
-allocate(IQY(n1+n2,n1+n2))
+
 
 Q1=0d0
 do i=1,n1
@@ -111,8 +129,8 @@ do i=1,n1+n2
    enddo
 enddo
 
-deallocate(Q1)
-deallocate(Q2)
+!deallocate(Q1)
+!deallocate(Q2)
 
 tAT=TRANSPOSE(At)
 
@@ -126,16 +144,13 @@ NN3= MATMUL(tAt,NN2)
 !enddo
 
 call inverse(NN3,NN4,m)
-print*,'inversion 1'
+!print*,'inversion 1'
 Nqy=MATMUL(NN4,NN1)
-print*,'NN4 ===='
+!print*,'NN4 ===='
 !do i=1,m
 !print*,(NN4(j,i),j=1,m)
 !enddo
 
-allocate(NN5(n1+n2,n1+n2))
-allocate(DNN5(n1+n2,n1+n2))
-allocate(paortho(n1+n2,n1+n2))
 
 NN5=MATMUL(At,Nqy)
 DNN5=0d0
@@ -158,12 +173,11 @@ do i=1,n1+n2
 !print*,e(i),omct(i)
 enddo
 matr=MATMUL(IQY,paortho)
-print*,'matr'
+!print*,'matr'
 
 deallocate(paortho)
 
-allocate(Q1(n1+n2,n1+n2))
-allocate(Q2(n1+n2,n1+n2))
+
 Q1=0d0
 do i=1,n1
  Q1(i,i)=1d0
@@ -174,15 +188,12 @@ do i=n2+1,n1+n2
 Q2(i,i)=1d0
 enddo
 
-allocate(mq1(n1+n2,n1+n2))
-allocate(mq2(n1+n2,n1+n2))
+
 
 mq1=MATMUL(Q1,matr)
 mq2=MATMUL(Q2,matr)
 !print*,'mQ'
 
-allocate(aa(n1+n2,n1+n2))
-allocate(ab(n1+n2,n1+n2))
 
 aa=MATMUL(matr,mq1)
 ab=MATMUL(matr,mq2)
@@ -190,12 +201,9 @@ ab=MATMUL(matr,mq2)
 deallocate(mq1)
 deallocate(mq2)
 
-allocate(mN11(n1+n2,n1+n2))
-allocate(mN12(n1+n2,n1+n2))
-allocate(mN21(n1+n2,n1+n2))
-allocate(mN22(n1+n2,n1+n2))
 
-print*,'mN'
+
+!print*,'mN'
 mN11=MATMUL(Q1,aa)
 mN12=MATMUL(Q1,ab)
 mN22=MATMUL(Q2,ab)
@@ -204,12 +212,12 @@ mN21=MATMUL(Q2,aa)
 deallocate(aa)
 deallocate(ab)
 
-print*,'Nmat-trace'
+!print*,'Nmat-trace'
 Nmat(1,1)=0.5d0*trace(mN11,n1+n2)
 Nmat(1,2)=0.5d0*trace(mN12,n1+n2)
 Nmat(2,2)=0.5d0*trace(mN22,n1+n2)
 Nmat(2,1)=0.5d0*trace(mN21,n1+n2)
-print*,'Nmat'
+!print*,'Nmat'
 !print*,Nmat(1,1),Nmat(1,2),Nmat(2,1),Nmat(2,2)
 deallocate(mN11)
 deallocate(mN21)
@@ -218,7 +226,7 @@ deallocate(mN12)
 
 !CALL LGINF(Nmat,2,2,2,0,INmat,2,S,WK,IER)
 call inverse(Nmat,INmat,2)
-print*,'inversion 2'
+!print*,'inversion 2'
 !print*,INmat(1,1),INmat(1,2),INmat(2,1),INmat(2,2)
 
 E1=MATMUL(IQY,E)
@@ -237,8 +245,11 @@ ll=0.5*ll
 newsig=MATMUL(INmat,ll)
 newsig=sqrt(newsig)
 
+call system_clock(t1)
+
 print*,newsig*ua
 print*,sqrt(sqrt(INmat(1,1))),sqrt(sqrt(INmat(2,2)))
+print*, "temps en ticks : ", t1-t0
 End
 
 ! ===========================================
