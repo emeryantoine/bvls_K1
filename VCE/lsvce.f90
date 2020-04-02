@@ -1,7 +1,7 @@
 ! ifort -O3 lsvce.f90 -o lsvce ; lsvce
 implicit none
 integer :: i,k,j,IA,IER, t1, t0
-integer, parameter:: n1=300,m=12,n2=300,nskip=21996,nfull=40236
+integer, parameter:: n1=300,m=12,n2=300,nskip=21996,nfull=40236, nn12 = n1+n2
 real(kind=8), dimension(n1,m)::A1
 real(kind=8), dimension(n2,m)::A2
 real(kind=8), dimension(n1+n2,m)::At
@@ -69,24 +69,38 @@ omc1=omc1
 omc2=omc2
 
 !print*,"======A=====",ua
-do i=1,n2
+!do i=1,n2
 !print*,(A2(i,1)),A2(i,m)
-enddo
+!enddo
 
 At=0d0
 tAt=0d0
 omct=0d0
 
-do j=1,m
-   do i=1,n1
-   At(i,j)=A1(i,j)
-   omct(i)=omc1(i)
-   enddo
-    do i=1,n2
-        At(i+n1,j)=A2(i,j)
-   omct(i+n1)=omc2(i)
-    enddo
-enddo    
+!do j=1,m
+!   do i=1,n1
+!   At(i,j)=A1(i,j)
+!   omct(i)=omc1(i)
+!   enddo
+!   do i=1,n2
+!        At(i+n1,j)=A2(i,j)
+!        omct(i+n1)=omc2(i)
+!   enddo
+!enddo
+
+do i=1, n1
+  do j=1,m
+    At(i, j) = A1(i, j)
+    omct(i) = omc1(i)
+  end do
+end do
+
+do i=1, n2
+  do j = 1, m
+    At(i + n1, j) = A2(i, j)
+    omct(i + n1) = omc2(i)
+  end do
+end do
    
 ! =======================     
 ! remplissages des Q ===============
@@ -96,41 +110,40 @@ enddo
 Q1=0d0
 do i=1,n1
  Q1(i,i)=1d0
+ Q2(i+n2,i+n2)=1D0
 enddo
 !print*,'Q1====='
-do i=1,n1+n2
+!do i=1,n1+n2
 !write(*,'(20(f10.5,1x))')(Q1(i,j),j=1,n1+n2)
-        do j=1,n1+n2
+!        do j=1,n1+n2
 !              if(Q1(i,j)==1)print*,i,j
-        enddo
-enddo
+!        enddo
+!enddo
 
-Q2=0d0
-do i=n2+1,n1+n2
-Q2(i,i)=1d0
-enddo
+!Q2=0d0
+!do i=n2+1,n1+n2
+!  Q2(i,i)=1d0
+!enddo
 !print*,'Q2====='
-do i=1,n1+n2
-!write(*,'(20(f10.5,1x))')(Q2(i,j),j=1,n1+n2)
-do j=1,n1+n2
-!if(Q2(i,j)==1)print*,i,j
-enddo
-enddo
+!do i=1,n1+n2
+!   write(*,'(20(f10.5,1x))')(Q2(i,j),j=1,n1+n2)
+!   do j=1,n1+n2
+!     if(Q2(i,j)==1)print*,i,j
+    !enddo
+!enddo
 ! =======================    
 
 QY=0d0
 IQY=0d0
 c1=1d0
 c2=1d0
-do i=1,n1+n2
-   do j=1,n1+n2
+do i=1,nn12
+   do j=1,nn12
         QY(i,j)=c1*Q1(i,j)+c2*Q2(i,j)
         IQY(i,j)=(1d0/c1)*Q1(i,j)+(1d0/c2)*Q2(i,j)
    enddo
 enddo
 
-!deallocate(Q1)
-!deallocate(Q2)
 
 tAT=TRANSPOSE(At)
 
@@ -155,12 +168,9 @@ Nqy=MATMUL(NN4,NN1)
 NN5=MATMUL(At,Nqy)
 DNN5=0d0
 
-do i=1,n1+n2
-   DNN5(i,i)=1d0
-enddo    
-    
-do i=1,n1+n2
-  do j=1,n1+n2
+do i=1,nn12
+  DNN5(i,i)=1d0
+  do j=1,nn12
         paortho(i,j)=DNN5(i,j)-NN5(i,j)
   enddo
 enddo
@@ -169,9 +179,9 @@ deallocate(NN5)
 deallocate(DNN5)
 
 E=MATMUL(paortho,omct)
-do i=1,n1+n2
-!print*,e(i),omct(i)
-enddo
+!do i=1,n1+n2
+!   print*,e(i),omct(i)
+!enddo
 matr=MATMUL(IQY,paortho)
 !print*,'matr'
 
@@ -237,8 +247,8 @@ E122=MATMUL(IQY,E21)
 
 ll=0d0
 do i=1,n1+n2
-ll(1)=ll(1)+e(i)*E121(i)
-ll(2)=ll(2)+e(i)*E122(i)
+  ll(1)=ll(1)+e(i)*E121(i)
+  ll(2)=ll(2)+e(i)*E122(i)
 enddo
 ll=0.5*ll
 
@@ -248,9 +258,9 @@ newsig=sqrt(newsig)
 call system_clock(t1)
 
 print*,newsig*ua
-print*, "  15494610.8911688        15220.8563151654 ********* reference"
+print *, "  15494610.8911688        15220.8563151654 ********* reference"
 print*,sqrt(sqrt(INmat(1,1))),sqrt(sqrt(INmat(2,2)))
-print*, " 0.288675134594781       0.285744048328210 ******* reference"
+print *, " 0.288675134594781       0.285744048328210 ******* reference"
 print*, "temps en ticks : ", t1-t0
 End
 
@@ -262,7 +272,7 @@ real(kind=8), dimension(m,m) :: N
 real(kind=8) :: sum
 trace=0d0
 do i=1,m
-trace=trace+N(i,i)
+  trace=trace+N(i,i)
 enddo
 return 
 end
@@ -309,11 +319,9 @@ end do
 ! Step 2: prepare L and U matrices 
 ! L matrix is a matrix of the elimination coefficient
 ! + the diagonal elements are 1.0
-do i=1,n
-  L(i,i) = 1.0
-end do
 ! U matrix is the upper triangular part of A
 do j=1,n
+  L(j,j) = 1.0
   do i=1,j
     U(i,j) = a(i,j)
   end do
