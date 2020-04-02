@@ -30,3 +30,5 @@ JOUR 7 : Le deroulage des boucles implicites a degrade les perfs un petit peu, t
 depart. A vrai dire on pourrait appeler ca "aucun changement" je vais verifier avec maqao
 JOUR 8 : BVLS arrive a la fin de son "amelioration" aucun changement concret n'a ete capable de modifier durablement et positivement les perfs de la sbroutine. idee d'agnes : changer l'unite des elements a manipuler pour peut etre gagner des perfs sur le type a manipuler lors du calcul, pas sur mais essai en cours. Apres ca il y a LSVCE a developper avec la decomposition LU a l'interieur.
 JOUR 9 : travail sur lsvce, apres avoir debugger les erreurs de segmentation a cause d'allocations, le code met ~234 000 cycles a s'executer sur gpm. time pour l'upgrade. a premiere vue il y a deja quelques boucles qui vont pouvoir etre amelioree, changer l'ordre des incides etc. aussi tenter -O3 ca mange pas de pain.
+ifort -heap-arrays lsvce.f90 -g -traceback -check all -fp-stack-check : 234 000 cycles
+ifort -lsvce.f90 -O3/-Ofast -funroll-loop : 17 000 cycles

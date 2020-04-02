@@ -248,7 +248,9 @@ newsig=sqrt(newsig)
 call system_clock(t1)
 
 print*,newsig*ua
+print*, "  15494610.8911688        15220.8563151654 ********* reference"
 print*,sqrt(sqrt(INmat(1,1))),sqrt(sqrt(INmat(2,2)))
+print*, " 0.288675134594781       0.285744048328210 ******* reference"
 print*, "temps en ticks : ", t1-t0
 End
 
