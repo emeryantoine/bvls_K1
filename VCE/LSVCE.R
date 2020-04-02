@@ -11,12 +11,12 @@
 #dat1 <- dat1a[sample(1:nrow(dat1a), 2000, replace=FALSE),]
 #dat2 <- dat2a[sample(1:nrow(dat2a), 2000, replace=FALSE),]
 
-dat1<-read.table("../RA.out",nrow=1500)
+dat1<-read.table("../../transfert/RA.out",nrow=1500)
 date1=dat1[,c(1)]
 deriv1=as.matrix(dat1[,c(4:15)])
 oc1 <- dat1[,c(3)]
 
-dat2=read.table("../RA.out",skip=21996,nrow=600)
+dat2=read.table("../../transfert/RA.out",skip=21996,nrow=600)
 date2=dat2[,c(1)]
 deriv2=as.matrix(dat2[,c(4:15)])
 oc2 <- dat2[,c(3)]
