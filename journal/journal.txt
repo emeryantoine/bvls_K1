@@ -32,4 +32,4 @@ JOUR 8 : BVLS arrive a la fin de son "amelioration" aucun changement concret n'a
 JOUR 9 : travail sur lsvce, apres avoir debugger les erreurs de segmentation a cause d'allocations, le code met ~234 000 cycles a s'executer sur gpm. time pour l'upgrade. a premiere vue il y a deja quelques boucles qui vont pouvoir etre amelioree, changer l'ordre des incides etc. aussi tenter -O3 ca mange pas de pain.
 ifort -heap-arrays lsvce.f90 -g -traceback -check all -fp-stack-check : 234 000 cycles
 ifort -lsvce.f90 -O3/-Ofast -funroll-loop : 17 000 cycles
-Petite reunion de fin de journee, mes propositions d'opti sont comprises et vont etre etudiees. Pendant ce temps je recupere plus de travaille a faire d'elements sur lesquels me pencher, voir tdl.txt a cote.
+Petite reunion de fin de journee, mes propositions d'opti sont comprises et vont etre etudiees. Pendant ce temps je recupere plus de travaille a faire d'elements sur lesquels me pencher, voir tdl.txt a cote. Probleme avec openMP sur 2 petits tests ca fonctionne tres bien mais avec le code bvls, probleme, on dirait qu'un seul thread omp est utilisee, a changer.

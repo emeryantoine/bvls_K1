@@ -21,7 +21,7 @@ real(kind=8), dimension(:,:),allocatable :: A
 real(kind=8), dimension(:),allocatable :: B
 real(kind=8), dimension(:),allocatable :: W, X
 integer, dimension(:),allocatable :: INDEX
-integer :: err, start, stop, repeats = 1,h
+integer :: err, start, stop, repeats = 1,h, tot=0
 
 
 allocate(A(height, width))
@@ -104,7 +104,6 @@ call system_clock(start)
 
 call system_clock(stop)
 tot = tot+(stop-start)
-
 
 if (IEER /= 0) then
   print *, "IEER value : ", IEER, " if different than 0 --> problem"
