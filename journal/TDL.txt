@@ -1,3 +1,8 @@
 pour BVLS : openMP, modifier shape de la matrice, creuse ? etudier la shape de RA.out
 pour VCE  : openMP, inversion matrice
 pour lbfgsb : openMP ?
+
+
+
+
+LAPACK ? MATMUL ? R ? FORTRAN ? C ?
