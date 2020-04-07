@@ -133,6 +133,7 @@ SUBROUTINE BVLS ( A, B, BND, X, RNORM, NSETP, W, INDEX, IERR )
       integer IERR, M, N 
       integer I, IBOUND, II, IP, ITER, ITMAX, IZ, IZ1, IZ2
       integer J, JJ, JZ, L, LBOUND, NPP1, NSETP
+      !integer :: counter = 0
 
 integer INDEX(:)
 !
@@ -154,7 +155,9 @@ LOOPA: DO
 !   Quit on error flag, or if all coefficients are already in the 
 !   solution, .or. if M columns of A have been triangularized.
    IF  (IERR  /=   0  .or.  IZ1  > IZ2 .or. NSETP >= M) exit LOOPA   
-!   
+!
+  !print *, counter
+ !counter=counter+1
    CALL  SELECT_ANOTHER_COEFF_TO!_SOLVE_FOR 
 !   
 !   See if no index was found to be moved from set Z to set P.   
@@ -219,15 +222,13 @@ IERR = 0
 
 !print*,IERR,EPS,ITMAX,ITER
 !   Initialize the array index().  
-!$OMP PARALLEL DO
    DO I=1,N
       INDEX(I)=I
    END DO
-!$OMP END PARALLEL DO
 
-!%OMP PARALLEL
-print*, "hello world !"
-!%OMP END PARALLEL
+!@!$OMP PARALLEL
+  !print*, "hello world !"
+!@!$OMP END PARALLEL
 
    
    IZ2=N 
@@ -274,8 +275,8 @@ print*, "hello world !"
 !
       IF  ( abs(X(J))   >   ZERO ) then 
 !
-!   Change B() to reflect a nonzero starting value for X(J). 
-         B(1:M)=B(1:M)-A(1:M,J)*X(J) 
+        !Change B() to reflect a nonzero starting value for X(J). 
+        B(1:M)=B(1:M)-A(1:M,J)*X(J)
       END IF
       IZ=IZ+1 
    END DO! ( IZ   <=   IZ2 )
@@ -299,6 +300,7 @@ SUBROUTINE  SELECT_ANOTHER_COEFF_TO!_SOLVE_FOR
 !   4. If no coefficient is selected, set FIND = false.
 !
    FIND = .FALSE.
+   !CAN'T PARALLELIZE HERE
    DO IZ=IZ1,IZ2 
       J=INDEX(IZ)   
 !

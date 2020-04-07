@@ -33,3 +33,9 @@ JOUR 9 : travail sur lsvce, apres avoir debugger les erreurs de segmentation a c
 ifort -heap-arrays lsvce.f90 -g -traceback -check all -fp-stack-check : 234 000 cycles
 ifort -lsvce.f90 -O3/-Ofast -funroll-loop : 17 000 cycles
 Petite reunion de fin de journee, mes propositions d'opti sont comprises et vont etre etudiees. Pendant ce temps je recupere plus de travaille a faire d'elements sur lesquels me pencher, voir tdl.txt a cote. Probleme avec openMP sur 2 petits tests ca fonctionne tres bien mais avec le code bvls, probleme, on dirait qu'un seul thread omp est utilisee, a changer.
+JOUR 10 : (oublie de report)
+
+SEMAINE 3
+JOUR 11 : (oublie de report)
+JOUR 12 : suite a la reunion de lundi, debut du travaille d'analyse de la matrice pour cette semaine, voir comment on pourrait mettre certaines zones a 0 ou la correlation est nul, donc les elements de la matrice peuvent etre retires. Ensuite il faudra voir comment changer la forme de la matrice pour tirer des perfs de la forme aqu'elle a. Apres la colonne 62, la matrice d'entree A est tres creuse, mais tout remplacer par 0 induit des changement dans le calcul de X non negligeable (a
+    verifier) Pour y remedier il faut jeter un oeil a la matrice de correlation.

@@ -15,6 +15,7 @@ integer, parameter :: height = 141970
 real(kind=8), dimension(:),allocatable :: tmp
 
 real(kind=8) :: CHI2, check, abserr, errmax = 0.000000000001, fact = 1
+real :: minn = 10e-5
 integer :: NSETP
 real(kind=8), dimension(:,:),allocatable :: BND
 real(kind=8), dimension(:,:),allocatable :: A
@@ -77,6 +78,14 @@ do i=1,height
     end if
 end do
 close(2)
+
+do i=63, width
+  do j=69346, height
+    if (abs(A(j, i)) < minn) then
+      A(j, i) = 0
+    endif
+  end do
+end do
 
 !print *, "true value of B(1) : 0.39322173244225497868E+01"
 !print *, "B first value in initialisation and A(1,1)", B(1), A(1,1)
