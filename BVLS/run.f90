@@ -7,7 +7,7 @@ INTERFACE
    END SUBROUTINE
 END INTERFACE
 
-logical :: debug = .FALSE., verif = .true.
+logical :: debug = .FALSE., verif = .true., zer=.true.
 integer, parameter :: width = 74
 integer, parameter :: height = 141970
 
@@ -15,14 +15,14 @@ integer, parameter :: height = 141970
 real(kind=8), dimension(:),allocatable :: tmp
 
 real(kind=8) :: CHI2, check, abserr, errmax = 0.000000000001, fact = 1
-real :: minn = 10e-5
+real :: minn = 10e-3
 integer :: NSETP
 real(kind=8), dimension(:,:),allocatable :: BND
 real(kind=8), dimension(:,:),allocatable :: A
 real(kind=8), dimension(:),allocatable :: B
 real(kind=8), dimension(:),allocatable :: W, X
 integer, dimension(:),allocatable :: INDEX
-integer :: err, start, stop, repeats = 1,h, tot=0
+integer :: err, start, stop, repeats = 1,h, tot=0, change = 0
 
 
 allocate(A(height, width))
@@ -79,14 +79,18 @@ do i=1,height
 end do
 close(2)
 
-do i=63, width
-  do j=69346, height
-    if (abs(A(j, i)) < minn) then
-      A(j, i) = 0
-    endif
+if(zer) then
+  !i = 63, width
+  do i=1, width
+    !j = 69346, height
+    do j=1, height
+      if (abs(A(j, i)) < minn) then
+        A(j, i) = 0
+        change = change + 1
+      endif
+    end do
   end do
-end do
-
+end if
 !print *, "true value of B(1) : 0.39322173244225497868E+01"
 !print *, "B first value in initialisation and A(1,1)", B(1), A(1,1)
 
@@ -161,5 +165,6 @@ close (3)
 end do BIGLOOP
 
 print *, tot/repeats
+print *, change, "changements dans la patrice A"
 
 END PROGRAM main
