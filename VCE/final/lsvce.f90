@@ -20,7 +20,7 @@ real(kind=8)::sum_mN11,sum_mN12,sum_mN21,sum_mN22
 !real(kind=8), dimension(n2+n1,n2+n1) :: mN11,mN12
 !real(kind=8), allocatable, dimension(:,:) :: Q1,Q2,QY,IQY
 real(kind=8), allocatable, dimension(:) :: IQY
-real(kind=8), allocatable, dimension(:,:) :: NN5,paortho
+real(kind=8), allocatable, dimension(:,:) :: NN5
 real(kind=8), allocatable, dimension(:,:) :: p1m,p2m,m11,m12
 
 !real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,tAt,Nqy
@@ -30,7 +30,7 @@ real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,Nqy
 real(kind=8), dimension(2,2) :: Nmat,INmat
 real(kind=8), dimension(2) :: ll,newsig,cc,outsol,outsolavant
 real(kind=8), parameter :: ua=1.5e11
-character(10) :: char
+character(100) :: valuem, filetoopen
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !open(355,file="dimension",status="old")
@@ -43,12 +43,14 @@ character(10) :: char
 
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !print*,"lecture",m
-if(command_argument_count() .ne. 1) then
-  write(*,*)"erreur, le premier argument de ligne de commande doit donner m"
+if(command_argument_count() .ne. 2) then
+  write(*,*)"erreur, il faut preciser 2 arguments en lignes de commande tq :"
+  write(*,*) "./xxx.out <taille de m> <chemin du fichier a lire>"
   stop
 endif
-call get_command_argument(1, char)
-read(char, *)m
+call get_command_argument(1, valuem)
+call get_command_argument(2, filetoopen)
+read(valuem, *)m
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 allocate(A1(n1,m))
@@ -57,9 +59,7 @@ allocate(AF(m))
 allocate(omc1(n1))
 allocate(omc2(n2))
 
-
-
-open(355,file="../../transfert/RA.out.mexmro.12",status="old")
+open(355,file=filetoopen,status="old")
 do i=1,nfull
 read(355,*)dat,wpond,omcF,(AF(j),j=1,m)
   if(i.le.n1)then
@@ -111,7 +111,7 @@ deallocate(omc2)
 cc(1)=1.9
 cc(2)=1.3
 
-do ii=1,1
+do ii=1,niter
 
 print*,'ITER',ii,'====', cc
 
@@ -206,6 +206,9 @@ allocate(NN5(n1+n2,n1+n2))
 
 print*, "matmul NN5 = At * NQY"
 NN5=MATMUL(At,Nqy)
+!time
+
+
 
 !deallocate(At)
 deallocate(Nqy)
@@ -227,16 +230,28 @@ deallocate(Nqy)
 
 !****************************************************
 print*,"contruction de paortho "
-NN5 = -NN5
+!NN5 = -NN5
+
+!$OMP PARALLEL DO schedule(dynamic, 512)
+do i = 1, n1+n2
+  do j = 1, n1+n2
+    NN5(j, i) = -NN5(j, i)
+  end do
+end do
+!$OMP END PARALLEL DO
+
+!$OMP PARALLEL DO schedule(dynamic, 512)
 do i = 1, n1+n2
   NN5(i,i) = NN5(i,i) + 1d0
 end do
+!$OMP END PARALLEL DO
 !****************************************************
 
 !deallocate(At)
 print*,'E====='
 allocate(E(n1+n2))
 
+!time
 E=MATMUL(NN5,omct)
 
 !deallocate(omct)
@@ -253,80 +268,173 @@ ll=ll*0.5d0
 
 deallocate(e)
 
-print*,("== p1m, p2m ==")
-
 !.......................................................
 !allocate(p1m(n1+n2,n1+n2))
-allocate(p2m(n1+n2,n1+n2))
+!allocate(p2m(n1+n2,n1+n2))
 !allocate(m11(n1,n1+n2))
 !allocate(m12(n2,n1+n2))
 !
 !p1m=0d0
-p2m=0d0
-do j=1,n1+n2
+!p2m=0d0
+!do j=1,n1+n2
 !  do i=1,n1
 !    p1m(i,j)=(1./c1)*NN5(i,j)
 !    m11(i,j)=p1m(i,j)
 !  enddo
-  do i=n1+1,n1+n2
-    p2m(i,j)=(1./c2)*NN5(i,j)
+!  do i=n1+1,n1+n2
+!    p2m(i,j)=(1./c2)*NN5(i,j)
 !    m12(i-n1,j)=p2m(i,j)
-  enddo
-enddo
+!  enddo
+!enddo
 !......................................................
 
 !Chnager NN5 en 1./NN5 puis remplacer les utilisations de p1m p2m m11 et m12 par
 !du NN5 avec des incides differents
 
 !......................................................
+print*, "== p1m, p2m dans NN5"
+!$OMP PARALLEL DO schedule(dynamic, 512)
 do i = 1, n1+n2
   do j = 1, n1
-    NN5(j, i) = NN5(i, j)/c1
+    NN5(i, j) = NN5(i, j)/c1
   end do
   do j = 1+n1, n1+n2
     NN5(i, j) = NN5(i, j)/c2
   end do
 end do
+!$OMP END PARALLEL DO
 !......................................................
 
 
 !deallocate(paortho)
 
+!ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+!Version 1
+!sum_mN11=0d0
+!do i=1,n1
+!  mmN11=0d0
+!  do k=1,n1
+!    mmN11=mmN11+m11(i,k)*p1m(k,i)
+!  enddo
+!  sum_mN11=sum_mN11+mmN11
+!enddo
+!
+!sum_mN12=0d0
+!do i=1,n1
+!  mmN12=0d0
+!  do k=n2,n1+n2
+!    mmN12=mmN12+m11(i,k)*p2m(k,i)
+!  enddo
+!  sum_mN12=sum_mN12+mmN12
+!end do
+!
+!sum_mN21=0d0
+!do i=1,n2
+!  mmN21=0d0
+!  do k=n2,n1+n2
+!    mmN21=mmN21+m12(i,k)*p2m(k,i+n1)
+!  enddo
+!  sum_mN21=sum_mN21+mmN21
+!enddo
+!
+!sum_mN22=0d0
+!do i=1,n2
+!  mmN22=0d0
+!  do k=1,n1
+!    mmN22=mmN22+m12(i,k)*p1m(k,i+n1)
+!  enddo
+!  sum_mN22=sum_mN22+mmN22
+!enddo
+!ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+!On utilise la forme changee de NN5 pour le calcul des sommes et on ne passe pas
+!par des variables temporaires inutiles
+
+!ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+!Version 2
+!print*,"mN11"
+!
+!sum_mN11=0d0
+!do i=1,n1
+!  do k=1,n1
+!    sum_mN11=sum_mN11+NN5(i,k)*NN5(k,i)
+!  enddo
+!enddo
+!
+!print*,"mN12"
+!
+!sum_mN12=0d0
+!do i=1,min(n1, n2)
+!  do k=n2,n1+n2
+!    sum_mN12=sum_mN12+NN5(i,k)*NN5(k,i)
+!  enddo
+!enddo
+!
+!print*,"mN21"
+!
+!sum_mN21=0d0
+!do i=1+n1,n2+n1
+!  do k=n2,n1+n2
+!    sum_mN21=sum_mN21+NN5(i,k)*NN5(k,i)
+!  enddo
+!enddo 
+!
+!print*,"mN22"
+!
+!sum_mN22=0d0
+!do i=1,n2
+!  do k=1,n1
+!    sum_mN22=sum_mN22+NN5(i+n1,k)*NN5(k,i+n1)
+!  enddo
+!enddo
+!ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+!ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+!Version 3
 print*,"mN11"
 
 sum_mN11=0d0
+!$OMP PARALLEL DO REDUCTION(+:sum_mN11) schedule(dynamic, 512)
 do i=1,n1
   do k=1,n1
     sum_mN11=sum_mN11+NN5(i,k)*NN5(k,i)
   enddo
 enddo
+!$OMP END PARALLEL DO
 
 print*,"mN12"
 
 sum_mN12=0d0
-do i=1,n1
+!$OMP PARALLEL DO REDUCTION(+:sum_mN12) schedule(dynamic, 512)
+do i=1,min(n1, n2)
   do k=n2,n1+n2
-    sum_mN12=sum_mN12+NN5(i,k)*p2m(k,i)
+    sum_mN12=sum_mN12+NN5(i,k)*NN5(k,i)
   enddo
 enddo
+!$OMP END PARALLEL DO
 
 print*,"mN21"
 
 sum_mN21=0d0
-do i=1,n2
+!$OMP PARALLEL DO REDUCTION(+:sum_mN21) schedule(dynamic, 512)
+do i=1+n1,n2+n1
   do k=n2,n1+n2
-    sum_mN21=sum_mN21+NN5(i+n1,k)*p2m(k,i+n1)
+    sum_mN21=sum_mN21+NN5(i,k)*NN5(k,i)
   enddo
 enddo 
+!$OMP END PARALLEL DO
 
 print*,"mN22"
 
 sum_mN22=0d0
+!$OMP PARALLEL DO REDUCTION(+:sum_mN22) schedule(dynamic, 512)
 do i=1,n2
   do k=1,n1
     sum_mN22=sum_mN22+NN5(i+n1,k)*NN5(k,i+n1)
   enddo
 enddo
+!$OMP END PARALLEL DO
+!ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 !deallocate(p1m)
 !deallocate(p2m)
