@@ -1,54 +1,65 @@
 ! ifort -O3 lsvce.f90 -o lsvce ; lsvce
 implicit none
-integer :: i,k,j,IA,IER, t1, t0
-integer, parameter:: n1=300,m=12,n2=300,nskip=21996,nfull=40236, nn12 = n1+n2
-real(kind=8), dimension(n1,m)::A1
-real(kind=8), dimension(n2,m)::A2
-real(kind=8), dimension(n1+n2,m)::At
-real(kind=8), dimension(n1) :: omc1
-real(kind=8), dimension(n2) :: omc2
-real(kind=8), dimension(m) :: AF
-real(kind=8), dimension(n1+n2) :: omct,E,E1,E12,E21,E121,E122,tomct
+integer :: i,j,k,ii,m
+!integer, parameter:: n1=800,m=12,n2=600,nskip=21996,nfull=40236
+integer, parameter:: n1=21996,n2=18240,nskip=21996,nfull=40236
+integer, parameter:: niter=15
+real(kind=8), parameter :: eps=1e-4
+!real(kind=8), dimension(n1,m)::A1
+!real(kind=8), dimension(n2,m)::A2
+real(kind=8), allocatable, dimension(:,:) :: A1,A2,At
+!real(kind=8), dimension(n1+n2,m)::At
+!real(kind=8), dimension(n1) :: omc1
+!real(kind=8), dimension(n2) :: omc2
+real(kind=8), allocatable, dimension(:) :: omct,E,omc1,omc2,AF
 real(kind=8) :: dat,wpond,c1,c2,trace,omcf
-real(kind=8), dimension(n1,n1) :: Q11
-real(kind=8), dimension(n2,n1) :: Q10
-real(kind=8), dimension(n2+n1,n1) :: Q111
-real(kind=8), dimension(n2+n1,n2) :: Q01
+!real(kind=8)::sum_mN11,mmN11,sum_mN12,mmN12,sum_mN21,mmN21,sum_mN22,mmN22
+real(kind=8)::sum_mN11,sum_mN12,sum_mN21,sum_mN22
 ! real(kind=8), dimension(n2+n1,n2+n1) :: Q1,Q2,QY,IQY,aa,ab,mN22,mN21
 !real(kind=8), dimension(n2+n1,n2+n1) :: NN5,paortho,DNN5,matr,mq1,mq2
 !real(kind=8), dimension(n2+n1,n2+n1) :: mN11,mN12
-real(kind=8), allocatable, dimension(:,:) :: Q1,Q2,QY,IQY,aa,ab,mN22,mN21
-real(kind=8), allocatable, dimension(:,:) :: NN5,paortho,DNN5,matr,mq1,mq2
-real(kind=8), allocatable, dimension(:,:) :: mN11,mN12
-real(kind=8), dimension(m,m) :: NN3,NN4
-real(kind=8), dimension(n2+n1,m) :: NN2
-real(kind=8), dimension(m,n2+n1) :: NN1,tAt,Nqy
+!real(kind=8), allocatable, dimension(:,:) :: Q1,Q2,QY,IQY
+real(kind=8), allocatable, dimension(:) :: IQY
+real(kind=8), allocatable, dimension(:,:) :: NN5,paortho
+real(kind=8), allocatable, dimension(:,:) :: p1m,p2m,m11,m12
+
+!real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,tAt,Nqy
+real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,Nqy
+!real(kind=8), dimension(m,n2+n1) :: NN1,tAt,Nqy
+
 real(kind=8), dimension(2,2) :: Nmat,INmat
-real(kind=8), dimension(2) :: ll,newsig
+real(kind=8), dimension(2) :: ll,newsig,cc,outsol,outsolavant
 real(kind=8), parameter :: ua=1.5e11
+character(10) :: char
 
-!allocation =======================================
-allocate(mN11(n1+n2,n1+n2))
-allocate(mN12(n1+n2,n1+n2))
-allocate(mN21(n1+n2,n1+n2))
-allocate(mN22(n1+n2,n1+n2))
-allocate(Q1(n1+n2,n1+n2))
-allocate(Q2(n1+n2,n1+n2))
-allocate(QY(n1+n2,n1+n2))
-allocate(IQY(n1+n2,n1+n2))
-allocate(NN5(n1+n2,n1+n2))
-allocate(DNN5(n1+n2,n1+n2))
-allocate(paortho(n1+n2,n1+n2))
-allocate(matr(n1+n2, n1+n2))
-allocate(aa(n1+n2,n1+n2))
-allocate(ab(n1+n2,n1+n2))
-allocate(mq1(n1+n2,n1+n2))
-allocate(mq2(n1+n2,n1+n2))
-!===================================================
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!open(355,file="dimension",status="old")
+!read(355,*)m
+!close(355)
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-call system_clock(t0)
+!Lecture de la taille de m a utiliser depuis les ligne de commande
+!gestion d'erruer si jamais le code n'est pas utilisee correctement
 
-open(355,file="../../transfert/RA.out",status="old")
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!print*,"lecture",m
+if(command_argument_count() .ne. 1) then
+  write(*,*)"erreur, le premier argument de ligne de commande doit donner m"
+  stop
+endif
+call get_command_argument(1, char)
+read(char, *)m
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+allocate(A1(n1,m))
+allocate(A2(n2,m))
+allocate(AF(m))
+allocate(omc1(n1))
+allocate(omc2(n2))
+
+
+
+open(355,file="../../transfert/RA.out.mexmro.12",status="old")
 do i=1,nfull
 read(355,*)dat,wpond,omcF,(AF(j),j=1,m)
   if(i.le.n1)then
@@ -68,211 +79,311 @@ close(355)
 omc1=omc1
 omc2=omc2
 
-!print*,"======A=====",ua
-!do i=1,n2
-!print*,(A2(i,1)),A2(i,m)
-!enddo
 
-At=0d0
-tAt=0d0
-omct=0d0
+allocate(omct(n1+n2))
+allocate(At(n1+n2,m))
 
-!do j=1,m
-!   do i=1,n1
-!   At(i,j)=A1(i,j)
-!   omct(i)=omc1(i)
-!   enddo
-!   do i=1,n2
-!        At(i+n1,j)=A2(i,j)
-!        omct(i+n1)=omc2(i)
-!   enddo
-!enddo
+!inutile car on va parcourir toute les cases de toute facon donc aucune valeur
+!non initialisee
+!At=0d0
+!omct=0d0
 
-do i=1, n1
-  do j=1,m
-    At(i, j) = A1(i, j)
-    omct(i) = omc1(i)
-  end do
-end do
+!===construction de A et omc"===
 
-do i=1, n2
-  do j = 1, m
-    At(i + n1, j) = A2(i, j)
-    omct(i + n1) = omc2(i)
-  end do
-end do
+do j=1,m
+  do i=1,n1
+  At(i,j)=A1(i,j)
+  omct(i)=omc1(i)
+  enddo
+  do i=1,n2
+    At(i+n1,j)=A2(i,j)
+    omct(i+n1)=omc2(i)
+  enddo
+enddo    
    
-! =======================     
-! remplissages des Q ===============
-!
+deallocate(A1)
+deallocate(A2)
+deallocate(omc1)
+deallocate(omc2)
+
+!===remplissages des Q ===
+
+cc(1)=1.9
+cc(2)=1.3
+
+do ii=1,1
+
+print*,'ITER',ii,'====', cc
+
+c1=cc(1)*cc(1)
+c2=cc(2)*cc(2)
 
 
-Q1=0d0
-do i=1,n1
- Q1(i,i)=1d0
- Q2(i+n2,i+n2)=1D0
-enddo
-!print*,'Q1====='
-!do i=1,n1+n2
-!write(*,'(20(f10.5,1x))')(Q1(i,j),j=1,n1+n2)
-!        do j=1,n1+n2
-!              if(Q1(i,j)==1)print*,i,j
-!        enddo
+!==========================================================
+!allocate(Q1(n1+n2,n1+n2))
+!allocate(Q2(n1+n2,n1+n2))
+!allocate(QY(n1+n2,n1+n2))
+!allocate(IQY(n1+n2,n1+n2))
+
+!Q1=0d0
+!do i=1,n1
+! Q1(i,i)=1d0
 !enddo
 
 !Q2=0d0
-!do i=n2+1,n1+n2
-!  Q2(i,i)=1d0
+!do i=n1+1,n1+n2
+!Q2(i,i)=1d0
 !enddo
-!print*,'Q2====='
-!do i=1,n1+n2
-!   write(*,'(20(f10.5,1x))')(Q2(i,j),j=1,n1+n2)
-!   do j=1,n1+n2
-!     if(Q2(i,j)==1)print*,i,j
-    !enddo
-!enddo
-! =======================    
 
-QY=0d0
-IQY=0d0
-c1=1d0
-c2=1d0
-do i=1,nn12
-   do j=1,nn12
-        QY(i,j)=c1*Q1(i,j)+c2*Q2(i,j)
-        IQY(i,j)=(1d0/c1)*Q1(i,j)+(1d0/c2)*Q2(i,j)
-   enddo
+!QY=0d0
+!IQY=0d0
+
+!print*,"contruction de QY et IQY"
+
+!do j=1,n1+n2
+! do i=1,n1+n2
+!   QY(i,j)=c1*Q1(i,j)+c2*Q2(i,j)
+!   IQY(i,j)=(1d0/c1)*Q1(i,j)+(1d0/c2)*Q2(i,j)
+! enddo
+!enddo
+!deallocate(Q1)
+!deallocate(Q2)
+!deallocate(QY)
+!==========================================================
+
+!supprime Q1, Q2, QY
+!remplace la matrice diagonale IQY par un vecteur diagonal
+
+!==========================================================
+allocate(IQY(n1+n2))
+do i=1, n1
+  IQY(i) = 1d0/c1
+end do
+do i = n1+1, n1+n2
+  IQY(i) = 1d0/c2
+end do
+!==========================================================
+
+allocate(NN3(m,m))
+allocate(NN4(m,m))
+allocate(NN1(m,n2+n1))
+allocate(Nqy(m,n2+n1))
+
+!---------------------------------------------------------
+!allocate(tAT(m,n2+n1))
+
+!tAt=0d0
+
+!print*,"contruction de NQY "
+
+!tAT=TRANSPOSE(At)
+!NN1=MATMUL(tAt,IQY)
+!---------------------------------------------------------
+
+!Pour une transposee de matrice il suffit d'inverser les indice (i,j) -> (j,i)
+!Reecriture de NN1= matmul(...) pour accomoder la forme custom de IQY diagonale
+!linearisee
+
+!---------------------------------------------------------
+do i=1, n1+n2
+  do j=1, m
+      NN1(j, i) = At(i, j)*IQY(i)
+  enddo
 enddo
-
-
-tAT=TRANSPOSE(At)
-
-
-NN1=MATMUL(tAt,IQY)
-NN2=MATMUL(IQY,At)
-NN3= MATMUL(tAt,NN2)
-!print*,'NN3 ===='
-!do i=1,m
-!print*,(NN3(j,i),j=1,m)
-!enddo
-
+!---------------------------------------------------------
+NN3=MATMUL(NN1,At)
 call inverse(NN3,NN4,m)
-!print*,'inversion 1'
 Nqy=MATMUL(NN4,NN1)
-!print*,'NN4 ===='
-!do i=1,m
-!print*,(NN4(j,i),j=1,m)
-!enddo
 
+deallocate(NN3)
+deallocate(NN4)
+deallocate(NN1)
+deallocate(IQY)
+!deallocate(tAT)
 
+allocate(NN5(n1+n2,n1+n2))
+!allocate(DNN5(n1+n2,n1+n2))
+
+print*, "matmul NN5 = At * NQY"
 NN5=MATMUL(At,Nqy)
-DNN5=0d0
 
-do i=1,nn12
-  DNN5(i,i)=1d0
-  do j=1,nn12
-        paortho(i,j)=DNN5(i,j)-NN5(i,j)
+!deallocate(At)
+deallocate(Nqy)
+
+!***************************************************
+!allocate(paortho(n1+n2,n1+n2))
+!do j=1,n1+n2
+!  do i=1,n1+n2
+!     if(i==j)then
+!        paortho(i,i)=1d0-NN5(i,i)
+!     else
+!        paortho(i,j)=-NN5(i,j)
+!     endif
+!  enddo
+!enddo
+!****************************************************
+
+!Au lieu de creer une nouvelle matrice, on recycle NN5 en paortho
+
+!****************************************************
+print*,"contruction de paortho "
+NN5 = -NN5
+do i = 1, n1+n2
+  NN5(i,i) = NN5(i,i) + 1d0
+end do
+!****************************************************
+
+!deallocate(At)
+print*,'E====='
+allocate(E(n1+n2))
+
+E=MATMUL(NN5,omct)
+
+!deallocate(omct)
+
+ll=0d0
+do i=1,n1
+  ll(1)=ll(1)+(e(i)*e(i))/(c1*c1)
+enddo
+do i=n1+1,n2+n1
+  ll(2)=ll(2)+(e(i)*e(i))/(c2*c2)
+enddo
+ll=ll*0.5d0
+!print*,'ll =====',ll(1),ll(2),c1,c2
+
+deallocate(e)
+
+print*,("== p1m, p2m ==")
+
+!.......................................................
+!allocate(p1m(n1+n2,n1+n2))
+allocate(p2m(n1+n2,n1+n2))
+!allocate(m11(n1,n1+n2))
+!allocate(m12(n2,n1+n2))
+!
+!p1m=0d0
+p2m=0d0
+do j=1,n1+n2
+!  do i=1,n1
+!    p1m(i,j)=(1./c1)*NN5(i,j)
+!    m11(i,j)=p1m(i,j)
+!  enddo
+  do i=n1+1,n1+n2
+    p2m(i,j)=(1./c2)*NN5(i,j)
+!    m12(i-n1,j)=p2m(i,j)
+  enddo
+enddo
+!......................................................
+
+!Chnager NN5 en 1./NN5 puis remplacer les utilisations de p1m p2m m11 et m12 par
+!du NN5 avec des incides differents
+
+!......................................................
+do i = 1, n1+n2
+  do j = 1, n1
+    NN5(j, i) = NN5(i, j)/c1
+  end do
+  do j = 1+n1, n1+n2
+    NN5(i, j) = NN5(i, j)/c2
+  end do
+end do
+!......................................................
+
+
+!deallocate(paortho)
+
+print*,"mN11"
+
+sum_mN11=0d0
+do i=1,n1
+  do k=1,n1
+    sum_mN11=sum_mN11+NN5(i,k)*NN5(k,i)
   enddo
 enddo
 
-deallocate(NN5)
-deallocate(DNN5)
+print*,"mN12"
 
-E=MATMUL(paortho,omct)
-!do i=1,n1+n2
-!   print*,e(i),omct(i)
-!enddo
-matr=MATMUL(IQY,paortho)
-!print*,'matr'
-
-deallocate(paortho)
-
-
-Q1=0d0
+sum_mN12=0d0
 do i=1,n1
- Q1(i,i)=1d0
-enddo
-!print*,'Q1====='
-Q2=0d0
-do i=n2+1,n1+n2
-Q2(i,i)=1d0
+  do k=n2,n1+n2
+    sum_mN12=sum_mN12+NN5(i,k)*p2m(k,i)
+  enddo
 enddo
 
+print*,"mN21"
 
+sum_mN21=0d0
+do i=1,n2
+  do k=n2,n1+n2
+    sum_mN21=sum_mN21+NN5(i+n1,k)*p2m(k,i+n1)
+  enddo
+enddo 
 
-mq1=MATMUL(Q1,matr)
-mq2=MATMUL(Q2,matr)
-!print*,'mQ'
+print*,"mN22"
 
+sum_mN22=0d0
+do i=1,n2
+  do k=1,n1
+    sum_mN22=sum_mN22+NN5(i+n1,k)*NN5(k,i+n1)
+  enddo
+enddo
 
-aa=MATMUL(matr,mq1)
-ab=MATMUL(matr,mq2)
+!deallocate(p1m)
+!deallocate(p2m)
+!deallocate(m11)
+!deallocate(m12)
+deallocate(NN5)
 
-deallocate(mq1)
-deallocate(mq2)
+Nmat(1,1)=0.5d0*sum_mN11
+Nmat(1,2)=0.5d0*sum_mN12
+Nmat(2,1)=0.5d0*sum_mN22
+Nmat(2,2)=0.5d0*sum_mN21
 
-
-
-!print*,'mN'
-mN11=MATMUL(Q1,aa)
-mN12=MATMUL(Q1,ab)
-mN22=MATMUL(Q2,ab)
-mN21=MATMUL(Q2,aa)
-
-deallocate(aa)
-deallocate(ab)
-
-!print*,'Nmat-trace'
-Nmat(1,1)=0.5d0*trace(mN11,n1+n2)
-Nmat(1,2)=0.5d0*trace(mN12,n1+n2)
-Nmat(2,2)=0.5d0*trace(mN22,n1+n2)
-Nmat(2,1)=0.5d0*trace(mN21,n1+n2)
-!print*,'Nmat'
-!print*,Nmat(1,1),Nmat(1,2),Nmat(2,1),Nmat(2,2)
-deallocate(mN11)
-deallocate(mN21)
-deallocate(mN22)
-deallocate(mN12)
+print*,'Nmat'
 
 !CALL LGINF(Nmat,2,2,2,0,INmat,2,S,WK,IER)
 call inverse(Nmat,INmat,2)
-!print*,'inversion 2'
+print*,'inversion 2'
 !print*,INmat(1,1),INmat(1,2),INmat(2,1),INmat(2,2)
 
-E1=MATMUL(IQY,E)
-E12=MATMUL(Q1,E1)
-E21=MATMUL(Q2,E1)
-E121=MATMUL(IQY,E12)
-E122=MATMUL(IQY,E21)
-
-ll=0d0
-do i=1,n1+n2
-  ll(1)=ll(1)+e(i)*E121(i)
-  ll(2)=ll(2)+e(i)*E122(i)
-enddo
-ll=0.5*ll
 
 newsig=MATMUL(INmat,ll)
+print*,newsig
 newsig=sqrt(newsig)
 
-call system_clock(t1)
+print*,'outsol',newsig*ua
+print*,'cc',(cc(j)*ua,j=1,2)
 
-print*,newsig*ua
-print *, "  15494610.8911688        15220.8563151654 ********* reference"
-print*,sqrt(sqrt(INmat(1,1))),sqrt(sqrt(INmat(2,2)))
-print *, " 0.288675134594781       0.285744048328210 ******* reference"
-print*, "temps en ticks : ", t1-t0
+
+if(abs(cc(1)-newsig(1))*ua<eps.and.abs(cc(2)-newsig(2))*ua<eps) then
+  print*,"resultat final ====",(cc(1)-newsig(1))*ua,(cc(2)-newsig(2))*ua
+  print*,newsig(1)*ua,newsig(2)*ua
+  print*,sqrt(sqrt(INmat(1,1)))*ua,sqrt(sqrt(INmat(2,2)))*ua
+  stop
+else
+  print*,((newsig(j)*ua),j=1,2)
+
+print*,'diff',(cc(1)-newsig(1))*ua,(cc(2)-newsig(2))*ua
+
+do j=1,2
+  cc(j)=newsig(j)
+enddo
+
+print*,'nouveau c1,c2 ==='
+print*,ii,(cc(j),j=1,2)
+
+endif
+enddo
 End
 
 ! ===========================================
 
-double precision function trace(N,m)
-integer :: i,j,m
-real(kind=8), dimension(m,m) :: N
-real(kind=8) :: sum
+double precision function trace(Nmat,m,n,offset)
+integer :: i,m,offset,n
+real(kind=8), dimension(m,n) :: Nmat
 trace=0d0
 do i=1,m
-  trace=trace+N(i,i)
+  trace=trace+Nmat(i,i+offset)
 enddo
 return 
 end
@@ -307,21 +418,23 @@ b=0.0
 
 ! step 1: forward elimination
 do k=1, n-1
-   do i=k+1,n
-      coeff=a(i,k)/a(k,k)
-      L(i,k) = coeff
-      do j=k+1,n
-         a(i,j) = a(i,j)-coeff*a(k,j)
-      end do
-   end do
+  do i=k+1,n
+  coeff=a(i,k)/a(k,k)
+  L(i,k) = coeff
+  do j=k+1,n
+    a(i,j) = a(i,j)-coeff*a(k,j)
+  end do
+  end do
 end do
 
 ! Step 2: prepare L and U matrices 
 ! L matrix is a matrix of the elimination coefficient
 ! + the diagonal elements are 1.0
+do i=1,n
+  L(i,i) = 1.0
+end do
 ! U matrix is the upper triangular part of A
 do j=1,n
-  L(j,j) = 1.0
   do i=1,j
     U(i,j) = a(i,j)
   end do
@@ -354,4 +467,3 @@ do k=1,n
   b(k)=0.0
 end do
 end subroutine inverse
-
