@@ -42,3 +42,6 @@ JOUR 12 : suite a la reunion de lundi, debut du travaille d'analyse de la matric
 
 Semaine ? jour ? 17/04
 optimisation de lsvce.f90, linearisation de matrice, optimisations de calculs et de gestion memoire, implementation d'openmp dans les boucles a sommes et les calculs simples. Il faudrait se pencher sur les calculs involvant NN5 qui prennent passe de temps
+
+20/04 :
+Mise en place du makefile, travail sur la parallelisation des elements lourds de lsvce. TODO, generaliser le code de lsvce avec plus que une decomposition en 2, essayer de mettre en place possibilitee de decomposition en n
