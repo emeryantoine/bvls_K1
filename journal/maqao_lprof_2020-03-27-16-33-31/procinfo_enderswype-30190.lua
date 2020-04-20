@@ -1,7 +1,0 @@
-hostname           = "enderswype"
-cpui_model_name    = "AMD Ryzen 7 3800X 8-Core Processor"
-cpui_cache_size    = "512 KB"
-cpui_cpu_cores     = "8"
-max_frequency          = "3900000"
-cur_frequency      = "2042276"
-os_version         = "Linux 5.3.0-42-generic #34-Ubuntu SMP Fri Feb 28 05:49:40 UTC 2020"
