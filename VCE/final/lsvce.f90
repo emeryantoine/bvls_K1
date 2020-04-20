@@ -90,6 +90,7 @@ allocate(At(n1+n2,m))
 
 !===construction de A et omc"===
 
+!$OMP PARALLEL DO schedule(dynamic, 512)
 do j=1,m
   do i=1,n1
   At(i,j)=A1(i,j)
@@ -100,6 +101,7 @@ do j=1,m
     omct(i+n1)=omc2(i)
   enddo
 enddo    
+!$OMP END PARALLEL DO
    
 deallocate(A1)
 deallocate(A2)
@@ -156,12 +158,16 @@ c2=cc(2)*cc(2)
 
 !==========================================================
 allocate(IQY(n1+n2))
+!$OMP PARALLEL DO schedule(dynamic, 512)
 do i=1, n1
   IQY(i) = 1d0/c1
 end do
+!$OMP END PARALLEL DO
+!$OMP PARALLEL DO schedule(dynamic, 512)
 do i = n1+1, n1+n2
   IQY(i) = 1d0/c2
 end do
+!$OMP END PARALLEL DO
 !==========================================================
 
 allocate(NN3(m,m))
@@ -185,11 +191,13 @@ allocate(Nqy(m,n2+n1))
 !linearisee
 
 !---------------------------------------------------------
+!$OMP PARALLEL DO schedule(dynamic, 512)
 do i=1, n1+n2
   do j=1, m
       NN1(j, i) = At(i, j)*IQY(i)
   enddo
 enddo
+!$OMP END PARALLEL DO
 !---------------------------------------------------------
 NN3=MATMUL(NN1,At)
 call inverse(NN3,NN4,m)
