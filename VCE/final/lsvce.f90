@@ -20,7 +20,7 @@ real(kind=8)::sum_mN11,sum_mN12,sum_mN21,sum_mN22
 !real(kind=8), dimension(n2+n1,n2+n1) :: mN11,mN12
 !real(kind=8), allocatable, dimension(:,:) :: Q1,Q2,QY,IQY
 real(kind=8), allocatable, dimension(:) :: IQY
-real(kind=8), allocatable, dimension(:,:) :: NN5
+real(kind=8), allocatable, dimension(:,:) :: NN5, NN52
 real(kind=8), allocatable, dimension(:,:) :: p1m,p2m,m11,m12
 
 !real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,tAt,Nqy
@@ -214,6 +214,8 @@ allocate(NN5(n1+n2,n1+n2))
 
 print*, "matmul NN5 = At * NQY"
 NN5=MATMUL(At,Nqy)
+print*, "sizes", size(At, 1), size(At, 2), size(Nqy, 1), size(Nqy, 2)
+!call mymatmul(At, Nqy)
 !time
 
 
@@ -518,7 +520,7 @@ subroutine inverse(a,c,n)
 ! comments ...
 ! the original matrix a(n,n) will be destroyed 
 ! during the calculation
-!===========================================================
+!==========================================================
 implicit none 
 integer n
 double precision a(n,n), c(n,n)
@@ -583,3 +585,40 @@ do k=1,n
   b(k)=0.0
 end do
 end subroutine inverse
+
+subroutine mymatmul(a, b, c, width_a, height_a, width_b, height_b)
+!=========================================================
+!calcul une multiplication matricielle avec des matrices pas foorcement carre
+!Prise en charge des erreurs si les tailles de matrice ne sont pas conforme
+!
+!Calcul C = A*B
+!
+!A et B sont initialisee et rempli de valeurs qui serviront a calculer C
+!C est alloue et sera remplie de 0 durant l'execution de cette subroutine
+!width_a = size(A, 1)
+!height_a = size(A, 2)
+!tel que A est initialisee par XXX, dimension(width, height) :: A
+!=========================================================
+
+
+  integer :: width_a, height_a, width_b, height_b
+  real(kind=8), dimension(width_a, height_a) :: a
+  real(kind=8), dimension(width_b, height_b) :: b
+  real(kind=8), dimension(width_a, height_b) :: c
+
+  if(width_a /= height_b) then
+    print*, "width of A incompatible with height of B"
+    stop
+  endif
+  
+  c= 0d0
+
+  do i = 1, height_b
+    do j = 1, width_a
+      do k = 1, height_a
+        c(j, i) = c(j, i) + a(j, k)*b(k, i)
+      end do
+    end do
+  end do
+
+end subroutine mymatmul

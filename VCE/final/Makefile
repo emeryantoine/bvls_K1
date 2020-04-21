@@ -28,5 +28,15 @@ time:$(exec)
 	export OMP_NUM_THREADS=$(nbr_threads)
 	time ./$(exec) $(size) $(file)
 
+help:
+	@echo "file : $(file)" 
+	@echo "size : $(size)"
+	@echo "nbr_threads : $(nbr_threads)"
+	@echo "CC : $(CC)"
+	@echo "flags : $(flags)"
+	@echo "exec : $(exec)"
+	@echo "src : $(src)"
+	@echo "make, make run, make time, make help, make clean"
+
 clean:
 	rm -rf $(exec)
