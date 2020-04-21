@@ -20,7 +20,7 @@ real(kind=8)::sum_mN11,sum_mN12,sum_mN21,sum_mN22
 !real(kind=8), dimension(n2+n1,n2+n1) :: mN11,mN12
 !real(kind=8), allocatable, dimension(:,:) :: Q1,Q2,QY,IQY
 real(kind=8), allocatable, dimension(:) :: IQY
-real(kind=8), allocatable, dimension(:,:) :: NN5, NN52
+real(kind=8), allocatable, dimension(:,:) :: NN5
 real(kind=8), allocatable, dimension(:,:) :: p1m,p2m,m11,m12
 
 !real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,tAt,Nqy
@@ -29,8 +29,10 @@ real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,Nqy
 
 real(kind=8), dimension(2,2) :: Nmat,INmat
 real(kind=8), dimension(2) :: ll,newsig,cc,outsol,outsolavant
+real(kind=8) :: ll1, ll2
 real(kind=8), parameter :: ua=1.5e11
 character(100) :: valuem, filetoopen
+integer :: oui, non
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !open(355,file="dimension",status="old")
@@ -213,14 +215,10 @@ allocate(NN5(n1+n2,n1+n2))
 !allocate(DNN5(n1+n2,n1+n2))
 
 print*, "matmul NN5 = At * NQY"
-NN5=MATMUL(At,Nqy)
-print*, "sizes", size(At, 1), size(At, 2), size(Nqy, 1), size(Nqy, 2)
-!call mymatmul(At, Nqy)
-!time
-
-
-
-!deallocate(At)
+call system_clock(oui)
+call mymatmul(At, Nqy, NN5, size(At, 1), size(At,2),size(Nqy,1), size(Nqy,2))
+call system_clock(non)
+print*, "time : ", non-oui
 deallocate(Nqy)
 
 !***************************************************
@@ -263,17 +261,24 @@ allocate(E(n1+n2))
 
 !time
 E=MATMUL(NN5,omct)
+!call mymatmul(NN5, omct, E, size(NN5, 1), size(NN5,2), size(omct,1), 1)
 
 !deallocate(omct)
 
-ll=0d0
+ll1=0d0
+ll2=0d0
+!$OMP PARALLEL DO REDUCTION(+:ll1) schedule(dynamic, 512)
 do i=1,n1
-  ll(1)=ll(1)+(e(i)*e(i))/(c1*c1)
+  ll1=ll1+(e(i)*e(i))/(c1*c1)
 enddo
+!$OMP END PARALLEL DO
+!$OMP PARALLEL DO REDUCTION(+:ll2) schedule(dynamic, 512)
 do i=n1+1,n2+n1
-  ll(2)=ll(2)+(e(i)*e(i))/(c2*c2)
+  ll2=ll2+(e(i)*e(i))/(c2*c2)
 enddo
-ll=ll*0.5d0
+!$OMP END PARALLEL DO
+ll(1)=ll1/2
+ll(2)=ll2/2
 !print*,'ll =====',ll(1),ll(2),c1,c2
 
 deallocate(e)
@@ -415,7 +420,7 @@ enddo
 print*,"mN12"
 
 sum_mN12=0d0
-!$OMP PARALLEL DO REDUCTION(+:sum_mN12) schedule(dynamic, 512)
+!$OMP PARALLEL DO REDUCTION(+:sum_mN12) schedule(dynamic, 512) collapse(2)
 do i=1,min(n1, n2)
   do k=n2,n1+n2
     sum_mN12=sum_mN12+NN5(i,k)*NN5(k,i)
@@ -586,7 +591,7 @@ do k=1,n
 end do
 end subroutine inverse
 
-subroutine mymatmul(a, b, c, width_a, height_a, width_b, height_b)
+subroutine mymatmul(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
 !=========================================================
 !calcul une multiplication matricielle avec des matrices pas foorcement carre
 !Prise en charge des erreurs si les tailles de matrice ne sont pas conforme
@@ -595,30 +600,33 @@ subroutine mymatmul(a, b, c, width_a, height_a, width_b, height_b)
 !
 !A et B sont initialisee et rempli de valeurs qui serviront a calculer C
 !C est alloue et sera remplie de 0 durant l'execution de cette subroutine
-!width_a = size(A, 1)
-!height_a = size(A, 2)
+!dim1_a = size(A, 1)
+!dim2_a = size(A, 2)
 !tel que A est initialisee par XXX, dimension(width, height) :: A
 !=========================================================
 
 
-  integer :: width_a, height_a, width_b, height_b
-  real(kind=8), dimension(width_a, height_a) :: a
-  real(kind=8), dimension(width_b, height_b) :: b
-  real(kind=8), dimension(width_a, height_b) :: c
+  integer :: dim1_a, dim2_a, dim1_b, dim2_b
+  real(kind=8), dimension(dim1_a, dim2_a) :: a
+  real(kind=8), dimension(dim1_b, dim2_b) :: b
+  real(kind=8), dimension(dim1_a, dim2_b) :: c
 
-  if(width_a /= height_b) then
+  !print*, dim1_a, dim2_a, dim1_b, dim2_b
+  !print*, shape(c)
+  
+  if(dim1_a /= dim2_b .and. dim2_b /= 1) then
     print*, "width of A incompatible with height of B"
     stop
   endif
-  
-  c= 0d0
-
-  do i = 1, height_b
-    do j = 1, width_a
-      do k = 1, height_a
+ 
+  !$OMP PARALLEL DO schedule(dynamic, 512)
+  do i = 1, dim2_b
+    do j = 1, dim1_a
+      do k = 1, dim2_a
         c(j, i) = c(j, i) + a(j, k)*b(k, i)
       end do
     end do
   end do
+  !$OMP END PARALLEL DO
 
 end subroutine mymatmul

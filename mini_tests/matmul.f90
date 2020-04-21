@@ -6,6 +6,9 @@ integer, dimension(2, 3) :: BB
 integer, dimension(3, 2) :: AA
 integer, dimension(3, 3) :: CC
 integer, dimension(3, 3) :: DD
+integer, dimension(1, 10) :: test
+
+print*, test
 
 A(1, 1) = 1
 A(1, 2) = 2
