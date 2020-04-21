@@ -31,35 +31,60 @@ print*, B
 Print*, C
 print*, D
 
-CC = matmul(AA, BB)
+do i = 1, 3
+  do j = 1, 2
+    aa(j, i) = i+j
+  end do
+enddo
 
-call mymatmul(BB, AA, DD)
+do i = 1, 2
+  do j = 1, 3
+    bb(j, i) = -(i+j) +1
+  end do
+end do
+
+cc = 0d0
+CC = matmul(BB, AA)
 
 print*, AA
 print*, BB
 Print*, CC
+
+call mymatmul(bb, aa, DD, 2, 3)
+
 print*, DD
 
 end program matrixmul
 
-function mymatmul(a, b, c)
-  if(shape(A)(1) /= shape(B)(2)) then
-    print*, "shapes of A(1) and B(2) arn't compatible"
+subroutine mymatmul(b, a, c, width, height)
+  
+  integer :: width, height
+  integer, dimension(width, height) :: a
+  integer, dimension(height, width) :: b
+  integer, dimension(height, height) :: c
+ 
+  print*, shape(a)
+  print*, shape(b)
+  print*, shape(c)
+  print*, width, height
+
+  if(size(a, 1 ) /= width .or. size(b, 2) /= width) then
+    print*, "width of A and height of B arn't compatible"
     stop
   endif
-  if(shape(A)(2) /= shape(B)(1)) then
-    print*, "shape of A(2) and B(1) arn't compatible"
+  if(size(a, 2) /= height .or. size(b, 1) /= height) then
+    print*, "height of A and width of B arn't compatible"
     stop
   endif
 
   c = 0d0
 
-  do i = 1, shape(A)(2)
-    do j = 1, shape(A)(1)
-      do k = 1,  shape(A)(1)
-        c(j, i) = c(j, i) + a(j, k)*b(k, i)
+  do i = 1, height
+    do j = 1, height
+      do k = 1,  width
+        c(i, j) = c(i, j) + b(i, k)*a(k, j)
       end do
     end do
   end do
 
-end function
+end subroutine mymatmul
