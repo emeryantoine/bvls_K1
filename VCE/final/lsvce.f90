@@ -260,8 +260,8 @@ print*,'E====='
 allocate(E(n1+n2))
 
 !time
-E=MATMUL(NN5,omct)
-!call mymatmul(NN5, omct, E, size(NN5, 1), size(NN5,2), size(omct,1), 1)
+!E=MATMUL(NN5,omct)
+call mymatmul(NN5, omct, E, size(NN5, 1), size(NN5,2), size(omct,1), 1)
 
 !deallocate(omct)
 
@@ -421,8 +421,8 @@ print*,"mN12"
 
 sum_mN12=0d0
 !$OMP PARALLEL DO REDUCTION(+:sum_mN12) schedule(dynamic, 512) collapse(2)
-do i=1,min(n1, n2)
-  do k=n2,n1+n2
+do i=1,n1
+  do k=n1+1,n1+n2
     sum_mN12=sum_mN12+NN5(i,k)*NN5(k,i)
   enddo
 enddo
@@ -433,7 +433,7 @@ print*,"mN21"
 sum_mN21=0d0
 !$OMP PARALLEL DO REDUCTION(+:sum_mN21) schedule(dynamic, 512)
 do i=1+n1,n2+n1
-  do k=n2,n1+n2
+  do k=n1+1,n1+n2
     sum_mN21=sum_mN21+NN5(i,k)*NN5(k,i)
   enddo
 enddo 
@@ -618,15 +618,29 @@ subroutine mymatmul(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
     print*, "width of A incompatible with height of B"
     stop
   endif
- 
-  !$OMP PARALLEL DO schedule(dynamic, 512)
-  do i = 1, dim2_b
-    do j = 1, dim1_a
-      do k = 1, dim2_a
-        c(j, i) = c(j, i) + a(j, k)*b(k, i)
+
+  !$OMP PARALLEL
+  if(dim2_b > 18) then
+    !$OMP DO schedule(dynamic, 512)
+    do i = 1, dim2_b
+      do j = 1, dim1_a
+        do k = 1, dim2_a
+          c(j, i) = c(j, i) + a(j, k)*b(k, i)
+        end do
       end do
     end do
-  end do
-  !$OMP END PARALLEL DO
+    !$OMP END DO
+  else
+    do i = 1, dim2_b
+    !$OMP DO schedule(dynamic, 512)
+      do j = 1, dim1_a
+        do k = 1, dim2_a
+          c(j, i) = c(j, i) + a(j, k)*b(k, i)
+        end do
+      end do
+    !$OMP END DO
+    end do
+  endif 
+  !$OMP END PARALLEL
 
 end subroutine mymatmul
