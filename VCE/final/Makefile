@@ -12,7 +12,7 @@ nbr_threads ?= 18
 CC = ifort
 flags = -O3 -heap-arrays -g -traceback -check all -fp-stack-check -openmp
 exec = lsvceiter
-src = lsvce.f90
+src = lsvce.f90 operationopenmp.f90
 ###########################################
 
 all:$(exec)

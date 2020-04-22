@@ -55,30 +55,10 @@ Print*, CC
 
 call mymatmul(aa, bb, DD, 3, 2, 2, 3)
 
+stop
+
 print*, DD
 
+
+
 end program matrixmul
-
-subroutine mymatmul(a, b, c, width_a, height_a, width_b, height_b)
-  
-  integer :: width_a, height_a, width_b, height_b
-  integer, dimension(width_a, height_a) :: a
-  integer, dimension(width_b, height_b) :: b
-  integer, dimension(width_a, height_b) :: c
- 
-  if(width_a /= height_b) then
-    print*, "width of A and height of B arn't compatible"
-    stop
-  endif
-
-  c = 0d0
-
-  do i = 1, height_b
-    do j = 1, width_a
-      do k = 1,  height_a
-        c(j, i) = c(j, i) + a(j, k)*b(k, i)
-      end do
-    end do
-  end do
-
-end subroutine mymatmul

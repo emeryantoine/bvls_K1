@@ -117,7 +117,7 @@ do ii=1,niter
 	NN5=0d0
 	print*, "matmul NN5 = At * NQY"
 	!NN5=MATMUL(At,Nqy)
-  call mymatmul(At, Nqy, NN5, size(At, 1), size(At, 2), size(Nqy, 1), size(Nqy, 2))
+  call matmat(At, Nqy, NN5, size(At, 1), size(At, 2), size(Nqy, 1), size(Nqy, 2))
 	deallocate(Nqy)
 	
 	
@@ -144,8 +144,8 @@ do ii=1,niter
 	allocate(E(ntotal))
 	
 	
-	E=MATMUL(NN5,omct)
-	!call mymatmul(NN5, omct, E, size(NN5, 1), size(NN5, 2), size(omct, 1), 1)
+	!E=MATMUL(NN5,omct)
+	call matvect(NN5, omct, E, size(NN5, 1), size(NN5, 2), size(omct, 1))
 
 	!deallocate(omct)
 	print*,'apres E'
