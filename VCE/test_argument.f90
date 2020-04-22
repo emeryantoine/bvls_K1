@@ -96,12 +96,14 @@ do ii=1,niter
 	allocate(NN1(m,ntotal))
 	allocate(Nqy(m,ntotal))
 	
+  !$OMP PARALLEL DO schedule(dynamic, 512)
 	do i=1, ntotal
 	  do j=1, m
 	      NN1(j, i) = At(i, j)*IQY(i)
 	  enddo
-	  print*,(At(i,j),j=1,m)
+	  !print*,(At(i,j),j=1,m)
 	enddo
+  !$OMP END PARALLEL DO
 	!---------------------------------------------------------
 	NN3=MATMUL(NN1,At)
 	call inverse(NN3,NN4,m)
@@ -114,7 +116,8 @@ do ii=1,niter
 	allocate(NN5(ntotal,ntotal))
 	NN5=0d0
 	print*, "matmul NN5 = At * NQY"
-	NN5=MATMUL(At,Nqy)
+	!NN5=MATMUL(At,Nqy)
+  call mymatmul(At, Nqy, NN5, size(At, 1), size(At, 2), size(Nqy, 1), size(Nqy, 2))
 	deallocate(Nqy)
 	
 	
@@ -140,9 +143,10 @@ do ii=1,niter
 	print*,'E====='
 	allocate(E(ntotal))
 	
-	!time
-	E=MATMUL(NN5,omct)
 	
+	E=MATMUL(NN5,omct)
+	!call mymatmul(NN5, omct, E, size(NN5, 1), size(NN5, 2), size(omct, 1), 1)
+
 	!deallocate(omct)
 	print*,'apres E'
 	
@@ -160,7 +164,7 @@ do ii=1,niter
 	enddo
 	ll=ll*0.5d0
 
-print*,'ll =====',(j,ll(j),cc(j),j=1,nc)
+print*,'ll ====='!,(j,ll(j),cc(j),j=1,nc)
 	
 	deallocate(e)
 
@@ -349,3 +353,56 @@ do k=1,n
 end do
 end subroutine inverse
 
+subroutine mymatmul(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
+!=========================================================
+!calcul une multiplication matricielle avec des matrices pas foorcement carre
+!Prise en charge des erreurs si les tailles de matrice ne sont pas conforme
+!
+!Calcul C = A*B
+!
+!A et B sont initialisee et rempli de valeurs qui serviront a calculer C
+!C est alloue et sera remplie de 0 durant l'execution de cette subroutine
+!dim1_a = size(A, 1)
+!dim2_a = size(A, 2)
+!tel que A est initialisee par XXX, dimension(width, height) :: A
+!=========================================================
+
+implicit none
+
+integer :: dim1_a, dim2_a, dim1_b, dim2_b, OMP_GET_NUM_THREADS, i, j, k
+real(kind=8), dimension(dim1_a, dim2_a) :: a
+real(kind=8), dimension(dim1_b, dim2_b) :: b
+real(kind=8), dimension(dim1_a, dim2_b) :: c
+
+!print*, dim1_a, dim2_a, dim1_b, dim2_b
+!print*, shape(c)
+              
+if(dim1_a /= dim2_b .and. dim2_b /= 1) then
+  print*, "width of A incompatible with height of B"
+  stop
+endif
+
+!$OMP PARALLEL
+if(dim2_b > OMP_GET_NUM_THREADS()) then
+  !$OMP DO schedule(dynamic, 512)
+  do i = 1, dim2_b
+    do j = 1, dim1_a
+      do k = 1, dim2_a
+        c(j, i) = c(j, i) + a(j, k)*b(k, i)
+      end do
+    enddo
+  enddo
+else
+  do i = 1, dim2_b
+  !$OMP DO schedule(dynamic, 512)
+    do j = 1, dim1_a
+      do k = 1, dim2_a
+        c(j, i) = c(j, i) + a(j, k)*b(k, i)
+      end do
+    end do
+  !$OMP END DO
+  end do
+endif 
+!$OMP END PARALLEL
+
+end subroutine mymatmul

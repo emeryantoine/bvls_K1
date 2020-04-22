@@ -6,8 +6,11 @@ integer, parameter :: sizee = 1
 
 real, dimension(sizee) :: X, Y
 
-integer :: start, stope, i, j, start2, stope2
+integer :: start, stope, i, j, start2, stope2, maxii
+integer :: OMP_GET_MAX_THREADS
 
+maxii = OMP_GET_MAX_THREDS()
+print*, maxii
 
 call system_clock(start)
 do j=0, 1
