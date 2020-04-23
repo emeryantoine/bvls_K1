@@ -9,7 +9,7 @@ subroutine matmat(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
 !
 !A et B sont initialisee et rempli de valeurs qui serviront a
 !calculer C
-!C est alloue et sera remplie de 0 durant l'execution de cette
+!C est alloue et sera initialise a 0 avant l'execution de cette
 !subroutine
 !dim1_a = size(A, 1)
 !dim2_a = size(A, 2)
@@ -56,6 +56,22 @@ subroutine matmat(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
 end subroutine matmat
 
 subroutine matvect(a, b, c, dim1_a, dim2_a, dim_b)
+!=========================================================
+!calcul une multiplication matrice vecteur donc le resultats est un vecteur de
+!meme taille que B
+!Prise en charge des erreurs si les tailles de matrice ne sont pas
+!conforme
+!
+!Calcul C = A*B
+!
+!A et B sont initialisee et rempli de valeurs qui serviront a
+!calculer C
+!C est alloue et sera initialise 0 avant l'execution de cette
+!subroutine
+!dim1_a = size(A, 1)
+!dim2_a = size(A, 2)
+!tel que A est initialisee par XXX, dimension(width, height) :: A
+!=========================================================
 
   implicit none
 
@@ -79,3 +95,14 @@ subroutine matvect(a, b, c, dim1_a, dim2_a, dim_b)
 
 end subroutine matvect
 
+subroutine matmatMPIomp(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
+  implicit none
+
+  integer :: dim1_a, dim2_a, dim1_b, dim2_b, i, j, k, OMP_GET_NUM_THREADS, tt
+  real(kind=8), dimension(dim1_a, dim2_a) :: a
+  real(kind=8), dimension(dim1_b, dim2_b) :: b
+  real(kind=8), dimension(dim1_a, dim2_b) :: c
+
+  
+
+end subroutine matmatMPIomp

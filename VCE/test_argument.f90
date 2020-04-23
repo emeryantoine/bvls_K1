@@ -13,7 +13,7 @@ real(kind=8), allocatable, dimension(:,:) :: p1m,p2m,m11,m12
 real(kind=8), allocatable, dimension(:,:) :: NN3,NN4,NN1,Nqy
 real(kind=8), parameter :: ua=1.5e11
 
-character(100) :: valuem, filetoopen,valuenc
+character(100) :: valuem, filetoopen,valuenc, arg
 character(100), dimension(10) :: valuencn
 integer, allocatable, dimension(:) :: nset
 
@@ -43,7 +43,8 @@ read(valuenc, *)nc
 allocate(nset(nc))
 
 do i = 1, nc
-  read(get_command_argument(i+3)) nset(i)
+  call get_command_argument(i+3, arg)
+  read(arg, *) nset(i)
 end do
 
 !open(345,file="nset.in",status="old")

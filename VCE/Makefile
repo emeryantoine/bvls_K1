@@ -2,20 +2,20 @@ SHELL := /bin/bash
 
 #Variables a modifier si besoin
 ###########################################
-file ?= ../../../transfert/RA.out.mexmro.12
+file ?= ../../transfert/RA.out.mexmro.12
 size ?= 12
 set ?= 2
-setsize ?= 1 2 3 4 5
+setsize ?= 21996 18240
 nbr_threads ?= 18
-schedule ?= dynamic,5
+schedule ?= dynamic,512
 ###########################################
 
 #Variables du makefile
 ###########################################
 CC = ifort
 flags = -O3 -openmp
-exec = lsvceiter
-src = test_arguments.f90 operationopenmp.f90
+exec = lsvce
+src = test_argument.f90 operationopenmp.f90
 ###########################################
 
 all:$(exec)
