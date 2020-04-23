@@ -42,9 +42,13 @@ read(valuenc, *)nc
 
 allocate(nset(nc))
 
-open(345,file="nset.in",status="old")
-read(345,*)(nset(i),i=1,nc)
-close(345)
+do i = 1, nc
+  read(get_command_argument(i+3)) nset(i)
+end do
+
+!open(345,file="nset.in",status="old")
+!read(345,*)(nset(i),i=1,nc)
+!close(345)
 
 print*,m
 print*,nc
@@ -96,7 +100,7 @@ do ii=1,niter
 	allocate(NN1(m,ntotal))
 	allocate(Nqy(m,ntotal))
 	
-  !$OMP PARALLEL DO schedule(dynamic, 512)
+  !$OMP PARALLEL DO schedule(runtime)
 	do i=1, ntotal
 	  do j=1, m
 	      NN1(j, i) = At(i, j)*IQY(i)
@@ -125,7 +129,7 @@ do ii=1,niter
 	print*,"contruction de paortho "
 	!NN5 = -NN5
 	
-!	!$OMP PARALLEL DO schedule(dynamic, 512)
+!	!$OMP PARALLEL DO schedule(runtime)
 	do i = 1, ntotal
 	  do j = 1, ntotal
 	    NN5(j, i) = -NN5(j, i)
@@ -133,7 +137,7 @@ do ii=1,niter
 	end do
 !	!$OMP END PARALLEL DO
 	
-!	!$OMP PARALLEL DO schedule(dynamic, 512)
+!	!$OMP PARALLEL DO schedule(runtime)
 	do i = 1, ntotal
 	  NN5(i,i) = NN5(i,i) + 1d0
 	end do
@@ -172,7 +176,7 @@ print*,'ll ====='!,(j,ll(j),cc(j),j=1,nc)
 !......................................................
 
 print*, "== p1m, p2m dans NN5"
-!$OMP PARALLEL DO schedule(dynamic, 512)
+!$OMP PARALLEL DO schedule(runtime)
 	do i = 1, ntotal
 !			write(*,'(11(f10.5,1x))')IQY(i),(NN5(i,j),j=1,ntotal)
 	bb=0
@@ -352,57 +356,3 @@ do k=1,n
   b(k)=0.0
 end do
 end subroutine inverse
-
-subroutine mymatmul(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
-!=========================================================
-!calcul une multiplication matricielle avec des matrices pas foorcement carre
-!Prise en charge des erreurs si les tailles de matrice ne sont pas conforme
-!
-!Calcul C = A*B
-!
-!A et B sont initialisee et rempli de valeurs qui serviront a calculer C
-!C est alloue et sera remplie de 0 durant l'execution de cette subroutine
-!dim1_a = size(A, 1)
-!dim2_a = size(A, 2)
-!tel que A est initialisee par XXX, dimension(width, height) :: A
-!=========================================================
-
-implicit none
-
-integer :: dim1_a, dim2_a, dim1_b, dim2_b, OMP_GET_NUM_THREADS, i, j, k
-real(kind=8), dimension(dim1_a, dim2_a) :: a
-real(kind=8), dimension(dim1_b, dim2_b) :: b
-real(kind=8), dimension(dim1_a, dim2_b) :: c
-
-!print*, dim1_a, dim2_a, dim1_b, dim2_b
-!print*, shape(c)
-              
-if(dim1_a /= dim2_b .and. dim2_b /= 1) then
-  print*, "width of A incompatible with height of B"
-  stop
-endif
-
-!$OMP PARALLEL
-if(dim2_b > OMP_GET_NUM_THREADS()) then
-  !$OMP DO schedule(dynamic, 512)
-  do i = 1, dim2_b
-    do j = 1, dim1_a
-      do k = 1, dim2_a
-        c(j, i) = c(j, i) + a(j, k)*b(k, i)
-      end do
-    enddo
-  enddo
-else
-  do i = 1, dim2_b
-  !$OMP DO schedule(dynamic, 512)
-    do j = 1, dim1_a
-      do k = 1, dim2_a
-        c(j, i) = c(j, i) + a(j, k)*b(k, i)
-      end do
-    end do
-  !$OMP END DO
-  end do
-endif 
-!$OMP END PARALLEL
-
-end subroutine mymatmul
