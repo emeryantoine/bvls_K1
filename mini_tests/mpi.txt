@@ -1,0 +1,2 @@
+mpifort mpihello.f90
+mpiexec -n 4 --map-by ppr:1:node ./a.out

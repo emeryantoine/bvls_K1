@@ -17,14 +17,25 @@ subroutine matmat(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
 !=========================================================
 
   use omp_lib
+  include 'mpif.h'
+
   implicit none
 
 
-  integer :: dim1_a, dim2_a, dim1_b, dim2_b, i, j, k, nbr
+  integer :: dim1_a, dim2_a, dim1_b, dim2_b, i, j, k, nbr, rank, sizze
   real(kind=8), dimension(dim1_a, dim2_a) :: a
   real(kind=8), dimension(dim1_b, dim2_b) :: b
   real(kind=8), dimension(dim1_a, dim2_b) :: c
 
+  call MPI_INIT()
+  call MPI_COMM_SIZE(MPI_COMM_WORLD, sizze)
+  call MPI_COMM_RANK(MPI_COMM_WORLD, rank)
+
+  if(rank == 0) then
+   !ergvbiuboiuvefrwbiuovefwbiuoerfwbiobuebriebvfiviebfnijevbjievjni 
+  end if
+
+  
   if(dim1_a /= dim2_b) then
     print*, "width of A incompatible with height of B"
     stop
@@ -55,6 +66,8 @@ subroutine matmat(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
     end do
   endif 
   !$OMP END PARALLEL
+
+  call MPI_FINALIZE()
 
 end subroutine matmat
 
