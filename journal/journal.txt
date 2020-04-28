@@ -46,3 +46,6 @@ optimisation de lsvce.f90, linearisation de matrice, optimisations de calculs et
 20/04 :
 Mise en place du makefile, travail sur la parallelisation des elements lourds de lsvce. TODO, generaliser le code de lsvce avec plus que une decomposition en 2, essayer de mettre en place possibilitee de decomposition en n
 22/04 :lsvce avec fortran est a son pic de performances, avec 17 sec/iter au lieux de ~4 minutes, next step : ajouter MPI et generaliser le probleme.
+
+28/04 :
+Abandon du projet de biblio MPI+openmp de calcul matriciel, accumulation de processes MPI inutiles, mieux d'utiliser openmp seulement. retour sur bvls et etude de la forme de la matrice, dependances, covariances etc

@@ -98,15 +98,3 @@ subroutine matvect(a, b, c, dim1_a, dim2_a, dim_b)
   !$OMP END PARALLEL DO
 
 end subroutine matvect
-
-subroutine matmatMPIomp(a, b, c, dim1_a, dim2_a, dim1_b, dim2_b)
-  implicit none
-
-  integer :: dim1_a, dim2_a, dim1_b, dim2_b, i, j, k, tt
-  real(kind=8), dimension(dim1_a, dim2_a) :: a
-  real(kind=8), dimension(dim1_b, dim2_b) :: b
-  real(kind=8), dimension(dim1_a, dim2_b) :: c
-
-  
-
-end subroutine matmatMPIomp
