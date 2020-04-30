@@ -22,21 +22,23 @@ PROGRAM MAIN
   end do
 close(1)
 
-open(1, file="../../transfert/RA.out", status='old', action='read')
+open(3, file="../../transfert/RA.out", status='old', action='read')
 open(2, file="./zero.ppm", status="new", action="write")
 write(2,'(a)')"P2"
-write(2,'(a)')"74 14190"
+write(2,'(a)')"74 1419"
 write(2,'(a)')"100"
 
 do i = 1, height, 100
   do j = 1, 100
-    read(1, *) tmp(j, :)
+    read(3, *) tmp(j, :)
   end do
+
+  !if(i == 1) print*, tmp(i,:)
   
   vals = 0
   do x = 4, width
     do y = 1, 100
-      if (tmp(y, x) == 0) vals(y) = vals(y) + 1
+      if (tmp(y, x) == 0) vals(x) = vals(x) + 1
     end do
   enddo
 
@@ -46,7 +48,7 @@ do i = 1, height, 100
 
 end do
 
-close(1)
+close(3)
 close(2)
 
 print*, "zero   small   supone   total-small&zero   total"
