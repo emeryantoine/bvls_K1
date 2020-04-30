@@ -2,7 +2,7 @@ PROGRAM MAIN
 
   integer, parameter :: height=141900, width=77
   real(kind=8), dimension(100,width) :: tmp
-  integer, dimension(width-3) :: vals
+  integer, dimension(width-3) :: zeros, neg, smalls
   real(kind=8), dimension(width) :: tmp_RA
   integer :: zero=0, small=0, supone=0, total=0
 
@@ -23,33 +23,47 @@ PROGRAM MAIN
 close(1)
 
 open(3, file="../../transfert/RA.out", status='old', action='read')
-open(2, file="./zero.ppm", status="new", action="write")
-write(2,'(a)')"P2"
-write(2,'(a)')"74 1419"
-write(2,'(a)')"100"
+open(20, file="./zero.ppm", status="new", action="write")
+open(21, file="./neg.ppm", status="new", action="write")
+open(22, file="./small.ppm", status="new", action="write")
+write(20,'(a)')"P2"
+write(20,'(a)')"74 1419"
+write(20,'(a)')"100"
+write(21,'(a)')"P2"
+write(21,'(a)')"74 1419"
+write(21,'(a)')"100"
+write(22,'(a)')"P2"
+write(22,'(a)')"74 1419"
+write(22,'(a)')"100"
 
 do i = 1, height, 100
   do j = 1, 100
     read(3, *) tmp(j, :)
   end do
 
-  !if(i == 1) print*, tmp(i,:)
-  
-  vals(:) = 0
+  zeros(:) = 0
+  neg(:) = 0
+  smalls(:) = 0
   do x = 4, width
     do y = 1, 100
-      if (tmp(y, x) == 0) vals(x) = vals(x) + 1
+      if (tmp(y, x) == 0) zeros(x) = zeros(x) + 1
+      if (tmp(y,x) < 0) neg(x) = neg(x) + 1
+      if (tmp(y,x) < 10e-3) smalls(x) = smalls(x) + 1
     end do
   enddo
 
   do x = 4,  width
-    write(2, *) vals(x)
+    write(20, *) zeros(x)
+    write(21, *) neg(x)
+    write(22, *) smalls(x)
   enddo
 
 end do
 
 close(3)
-close(2)
+close(20)
+close(21)
+close(22)
 
 print*, "zero   small   supone   total-small&zero   total"
 print*, zero, small, supone, total - small - zero, total

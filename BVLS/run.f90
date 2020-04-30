@@ -7,7 +7,7 @@ INTERFACE
    END SUBROUTINE
 END INTERFACE
 
-logical :: debug = .FALSE., verif = .true., zer=.false.
+logical :: debug = .FALSE., verif = .true., zer=.true.
 integer, parameter :: width = 74
 integer, parameter :: height = 141970
 

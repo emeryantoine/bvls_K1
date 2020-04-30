@@ -28,7 +28,8 @@ print(matrcorr)
 
 #C = MTMINV * ChiSq/(nobs-npar)
 
-library("matrixcalc")
+#library("matrixcalc")
+library("Matrix")
 
 mat=t(deriv)%*%deriv
 invmat=matrix.inverse(mat)
