@@ -48,7 +48,7 @@ do i = 1, height, 100
     do y = 1, 100
       if (tmp(y, x) == 0) zeros(x) = zeros(x) + 1
       if (tmp(y,x) < 0) neg(x) = neg(x) + 1
-      if (tmp(y,x) < 10e-3) smalls(x) = smalls(x) + 1
+      if (abs(tmp(y,x)) < 10e-3) smalls(x) = smalls(x) + 1
     end do
   enddo
 
