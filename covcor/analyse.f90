@@ -35,14 +35,14 @@ do i = 1, height, 100
 
   !if(i == 1) print*, tmp(i,:)
   
-  vals = 0
+  vals(:) = 0
   do x = 4, width
     do y = 1, 100
       if (tmp(y, x) == 0) vals(x) = vals(x) + 1
     end do
   enddo
 
-  do x = 1, 100
+  do x = 4,  width
     write(2, *) vals(x)
   enddo
 
