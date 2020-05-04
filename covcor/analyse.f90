@@ -27,13 +27,13 @@ open(20, file="./zero.ppm", status="new", action="write")
 open(21, file="./neg.ppm", status="new", action="write")
 open(22, file="./small.ppm", status="new", action="write")
 write(20,'(a)')"P2"
-write(20,'(a)')"74 1419"
+write(20,'(a)')"343 1419"
 write(20,'(a)')"100"
 write(21,'(a)')"P2"
-write(21,'(a)')"74 1419"
+write(21,'(a)')"343 1419"
 write(21,'(a)')"100"
 write(22,'(a)')"P2"
-write(22,'(a)')"74 1419"
+write(22,'(a)')"343 1419"
 write(22,'(a)')"100"
 
 do i = 1, height, 100
