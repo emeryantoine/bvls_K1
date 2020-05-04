@@ -22,7 +22,7 @@ real(kind=8), dimension(:,:),allocatable :: A
 real(kind=8), dimension(:),allocatable :: B
 real(kind=8), dimension(:),allocatable :: W, X
 integer, dimension(:),allocatable :: INDEX
-integer :: err, start, stop, repeats = 1,h, tot=0, change = 0
+integer :: err, start, stop, repeats = 1,h, tot=0, change = 0, toto = 0
 
 
 allocate(A(height, width))
@@ -84,6 +84,7 @@ if(zer) then
   do i=1, width
     !j = 69346, height
     do j=1, height
+    toto = toto + 1
       if (abs(A(j, i)) < minn) then
         A(j, i) = 0
         change = change + 1
@@ -165,6 +166,7 @@ close (3)
 end do BIGLOOP
 
 print *, tot/repeats
-print *, change, "changements dans la patrice A"
+print *, change, "changements dans la patrice A sur ", toto, "donc ", &
+real(real(change)/real(toto) * 100),"%"
 
 END PROGRAM main

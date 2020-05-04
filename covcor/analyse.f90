@@ -1,12 +1,12 @@
 PROGRAM MAIN
 
-  integer, parameter :: height=141900, width=77
+  integer, parameter :: height=141900, width=347
   real(kind=8), dimension(100,width) :: tmp
   integer, dimension(width-3) :: zeros, neg, smalls
   real(kind=8), dimension(width) :: tmp_RA
-  integer :: zero=0, small=0, supone=0, total=0
+  integer :: zero=0, small=0, supone=0, total=0, change = 0
 
-  open(1, file="../../transfert/RA.out", status='old', action='read')
+  open(1, file="../../transfert/cas_complet/RA.out", status='old', action='read')
   do i = 1, height
     read(1, *) tmp_RA(:)
     do j = 4, width
@@ -48,7 +48,10 @@ do i = 1, height, 100
     do y = 1, 100
       if (tmp(y, x) == 0) zeros(x) = zeros(x) + 1
       if (tmp(y,x) < 0) neg(x) = neg(x) + 1
-      if (abs(tmp(y,x)) < 10e-3) smalls(x) = smalls(x) + 1
+      if (abs(tmp(y,x)) < 10e-3) then 
+        smalls(x) = smalls(x) + 1
+        change = change + 1
+      endif
     end do
   enddo
 
@@ -59,6 +62,8 @@ do i = 1, height, 100
   enddo
 
 end do
+
+print*, change, 141900*74
 
 close(3)
 close(20)
