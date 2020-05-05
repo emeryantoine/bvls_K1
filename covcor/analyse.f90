@@ -1,6 +1,6 @@
 PROGRAM MAIN
 
-  integer, parameter :: height=141900, width=347
+  integer, parameter :: height=141900, width=415
   real(kind=8), dimension(100,width) :: tmp
   integer, dimension(width-3) :: zeros, neg, smalls
   real(kind=8), dimension(width) :: tmp_RA
