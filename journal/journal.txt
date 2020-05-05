@@ -52,3 +52,6 @@ Abandon du projet de biblio MPI+openmp de calcul matriciel, accumulation de proc
 
 29/04 :
 Appel avec agnes, plan de travaille a partir d'un code. Ajout du calcul de la covariance et de la variance dans la fonction bvls, voir feuille papier
+
+05/05 :
+Passage au cas complet, retour a BVLS etude de la covariance, variance et tete de la matrice. Choix des futures optimisations en fonctions des resultats

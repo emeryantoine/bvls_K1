@@ -8,7 +8,7 @@ INTERFACE
 END INTERFACE
 
 logical :: debug = .FALSE., verif = .true., zer=.false.
-integer, parameter :: width = 412
+integer, parameter :: width = 415
 integer, parameter :: height = 141970
 
 !raw -> 74 x 141970 
@@ -37,7 +37,7 @@ BIGLOOP : do h=1, repeats
 
 open(1, file='../../transfert/BND.out', status='old', action='read')
 
-  do i = 1,width
+  do i = 1,347
     read (1, *) BND(1,i), BND(2,i)
   end do
 
