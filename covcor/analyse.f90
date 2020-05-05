@@ -22,7 +22,7 @@ PROGRAM MAIN
   end do
 close(1)
 
-open(3, file="../../transfert/RA.out", status='old', action='read')
+open(3, file="../../transfert/cas_complet/RA.out", status='old', action='read')
 open(20, file="./zero.ppm", status="new", action="write")
 open(21, file="./neg.ppm", status="new", action="write")
 open(22, file="./small.ppm", status="new", action="write")

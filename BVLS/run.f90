@@ -7,8 +7,8 @@ INTERFACE
    END SUBROUTINE
 END INTERFACE
 
-logical :: debug = .FALSE., verif = .true., zer=.true.
-integer, parameter :: width = 74
+logical :: debug = .FALSE., verif = .true., zer=.false.
+integer, parameter :: width = 412
 integer, parameter :: height = 141970
 
 !raw -> 74 x 141970 
@@ -35,7 +35,7 @@ allocate(tmp(width+3))
 
 BIGLOOP : do h=1, repeats
 
-open(1, file='BND.out.20', status='old', action='read')
+open(1, file='../../transfert/BND.out', status='old', action='read')
 
   do i = 1,width
     read (1, *) BND(1,i), BND(2,i)
@@ -50,7 +50,7 @@ if (debug) then
   end do
 end if
 
-open(2, file='RAW.out.20', status='old', iostat=err, action='read')
+open(2, file='../../transfert/cas_complet/RA.out', status='old', iostat=err, action='read')
 if (err > 0) then
   print *, "an error has occur trying to oen RAW", err
 end if
@@ -101,7 +101,7 @@ end if
 !end do
 
 !lire les fichiers RAW et BND pour pouvoir lancer la suite
-if (debug) then
+if (.true.) then
   print *, "size of B X BND1 BND2 W INDEX A1 A2:"
   print *, size(B), size(x), size(BND,1), SIZE(BND,2), size(W), size(INDEX), "M",size(A,1), "N",size(A,2)
 endif
@@ -137,35 +137,38 @@ if(debug) then
 end if 
 
 
-open(3, file='RAW_20.out', status='old', action='read', iostat=err)
-if (err > 0) then
-  print *, "error openning RAW_20"
-end if
+!open(3, file='RAW_20.out', status='old', action='read', iostat=err)
+!if (err > 0) then
+!  print *, "error openning RAW_20"
+!end if
+!
+!if (verif) then
+!  print *, "true value --- calculated value --- difference"
+!  do i=1,75
+!      read(3,*) check
+!      if (i /= 1) then
+!        abserr = max(check, X(i-1))/min(check, X(i-1))
+!        print*, check * fact, X(i-1), abserr
+!        if (abserr > errmax) then
+!          errmax = abserr
+!        endif
+!      else
+!        print*, "valeur chi2 :", check, CHI2/141970, (CHI2/141970)-check
+!      end if
+!  end do
+!print *, "err max is : ", errmax
+!print *, "elapsed time in tick : ", (stop-start), start, stop
+!end if
+!close (3)
 
-if (verif) then
-  print *, "true value --- calculated value --- difference"
-  do i=1,75
-      read(3,*) check
-      if (i /= 1) then
-        abserr = max(check, X(i-1))/min(check, X(i-1))
-        print*, check * fact, X(i-1), abserr
-        if (abserr > errmax) then
-          errmax = abserr
-        endif
-      else
-        print*, "valeur chi2 :", check, CHI2/141970, (CHI2/141970)-check
-      end if
-  end do
-print *, "err max is : ", errmax
-print *, "elapsed time in tick : ", (stop-start), start, stop
-end if
-
-
-close (3)
+do i = 54, width
+  print*, X(i)
+end do
+print*, "time : ", (stop-start)
 
 end do BIGLOOP
 
-print *, tot/repeats
+!print *, tot/repeats
 print *, change, "changements dans la patrice A sur ", toto, "donc ", &
 real(real(change)/real(toto) * 100),"%"
 
