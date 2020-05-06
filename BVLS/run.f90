@@ -8,8 +8,8 @@ INTERFACE
 END INTERFACE
 
 logical :: debug = .FALSE., verif = .true., zer=.false.
-integer, parameter :: width = 415
-integer, parameter :: height = 141970
+integer, parameter :: width = 401
+integer, parameter :: height = 142388
 
 !raw -> 74 x 141970 
 real(kind=8), dimension(:),allocatable :: tmp
@@ -31,13 +31,13 @@ allocate(B(height))
 allocate(W(width))
 allocate(X(width))
 allocate(INDEX(height))
-allocate(tmp(width+3))
+allocate(tmp(width))
 
 BIGLOOP : do h=1, repeats
 
-open(1, file='../../transfert/BND.out', status='old', action='read')
+open(1, file='../../transfert/cas_complet/040520/BND.out', status='old', action='read')
 
-  do i = 1,347
+  do i = 1, width
     read (1, *) BND(1,i), BND(2,i)
   end do
 
@@ -50,7 +50,7 @@ if (debug) then
   end do
 end if
 
-open(2, file='../../transfert/cas_complet/RA.out', status='old', iostat=err, action='read')
+open(2, file='../../transfert/cas_complet/040520/RAW.out.412', status='old', iostat=err, action='read')
 if (err > 0) then
   print *, "an error has occur trying to oen RAW", err
 end if
@@ -161,11 +161,14 @@ end if
 !end if
 !close (3)
 
-do i = 54, width
-  print*, X(i)
-end do
-print*, "time : ", (stop-start)
+open(5, file="./output.txt", status="new")
 
+do i = 1, width
+  write(5,*) X(i)
+end do
+print*, "chi2", CHI2
+print*, "time : ", (stop-start)
+close(5)
 end do BIGLOOP
 
 !print *, tot/repeats
