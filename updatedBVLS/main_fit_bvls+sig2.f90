@@ -39,9 +39,10 @@ real(kind=8), dimension(ntotal3) :: Wtot,Rtot,zz,datjjf2,unite
 real(kind=8) :: chi2,sos
 integer :: i,j,k,info,rank,ik,ntot,nsetp,loopA,lim
 integer, dimension(ixt2) :: istate
-real :: reaad, min1=10e-3, min2=10e-30
-integer :: num2,tabsetf,Tnumf
-print*,'entree dans fit',ixt2,ntotal3
+real :: reaad, min1=5e-3, small = 1d0, val
+integer :: num2,tabsetf,Tnumf, b = 0
+integer, dimension(10) :: inf
+!print*,'entree dans fit',ixt2,ntotal3
 
 lim=ixt2-iwk_div-iwk_biais
 
@@ -68,33 +69,72 @@ read(556,*)datjjf2(i),W2tot(i),R2tot(i),(A2tot(i,j),j=1,ixt2)
 enddo
 close(556)
 
+!if(.true.) then
+!  do i = 1, 74
+!    do j = 1,ixt2
+!      if (A2tot(i,j) < min1) A2tot(i,j) = 0d0
+!    end do
+!  end do
+!endif
+!if(.false.) then
+!  do i = 75,ntot
+!    do j = 1,ixt2
+!      if(A2tot(i,j) < min2) A2tot(i,j) = 0d0
+!      if (A2tot(i,j) /= 0) then
+!        if(abs(A2tot(i,j)) < small) small = abs(A2tot(i,j))
+!      end if
+!    end do
+!  end do
+!end if
+
 if(.true.) then
-  do i = 1, 74
-    do j = 1,ixt2
-      if (A2tot(i,j) < min1) A2tot(i,j) = 0d0
+  do i = 1, ntot
+    do j = 1, ixt2
+      if(abs(A2tot(i,j)) .lt. min1) then
+        A2tot(i,j) = 0d0
+        b = b + 1
+      end if
     end do
   end do
 endif
-if(.false.) then
-  do i = 75,ntot
-    do j = 1,ixt2
-      if(A2tot(i,j) < min2) A2tot(i,j) = 0d0
-    end do
-  end do
-end if
+print*, "B :",b,"/",ntot*ixt2, ":", 100*(real(b)/real(ntot*ixt2)) ,"%"
 
+info = 0d0
+do i = 1,ixt2
+  do j = 1, ntot
+    val = abs(A2tot(j,i))
+    if(val == 0d0) inf(1) = inf(1) + 1
+    if(val > 1d0) inf(2) = inf(2) + 1
+    if(val < 10e-2 .and. val >10e-3) inf(3) = inf(3) + 1
+    if(val < 10e-3 .and. val >10e-4) inf(4) = inf(4) + 1
+    if(val < 10e-4 .and. val >10e-5) inf(5) = inf(5) + 1
+    if(val < 10e-5 .and. val >10e-6) inf(6) = inf(6) + 1
+    if(val < 10e-6 .and. val >10e-7) inf(7) = inf(7) + 1
+    if(val < 10e-7 .and. val >10e-8) inf(8) = inf(8) + 1
+    if(val < 10e-8 .and. val >10e-9) inf(9) = inf(9) + 1
+    if(val < 10e-9) inf(10) = inf(10) + 1
+  end do
+end do
+!print*, "zero, supone, 10e-2 a 10e-9"
+!print*, inf
+do i = 2, 10
+  inf(1) = inf(1) + inf(i)
+end do
+!print*, "total :", inf(1), ntot*ixt2
+
+!print*, "smallest number", small
 open(557,file='../../transfert/cas_complet/040520/BND.out',status='old')
 do i=1,ixt2
 read(557,*)BND(1,i),BND(2,i)
 enddo
 close(557)
 
-print*,'avant wtot',ixt2
+!print*,'avant wtot',ixt2
 solnr_sol(:)=0d0
 call bvls(A2tot,R2tot,BND,solnr_sol,chi2,nsetp,ww,istate,loopA)
 !solnr_sol=-solnr_sol
-print*,'apres wtot',loopA,chi2,nsetp,chi2/(ntot-ixt2)
-print*,'chi2',chi2/(ntot-ixt2)
+!print*,'apres wtot',loopA,chi2,nsetp,chi2/(ntot-ixt2)
+!print*,'chi2',chi2/(ntot-ixt2)
 if(loopA>0)print*,'---------- WARNING !!!!--------',loopA
 
 
@@ -104,12 +144,13 @@ if(loopA>0)print*,'---------- WARNING !!!!--------',loopA
 !enddo
 !close(556)
 
-print*,'SOL BVLS-------------------------------------------'
-OPEN(42, file="reference.out", status="old")
-print*, "result, reference, res/ref"
+!print*,'SOL BVLS-------------------------------------------'
+OPEN(42, file="ref.out", status="old")
+!print*, "result, reference, res/ref"
 do j=1,ixt2
   read(42,*) reaad
   print*,solnr_sol(j), reaad, solnr_sol(j)/reaad
+  !print*, solnr_sol(j)
 enddo
 
 111   format(29(d27.20,4x))

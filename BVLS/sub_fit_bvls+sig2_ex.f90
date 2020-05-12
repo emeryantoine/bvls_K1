@@ -43,7 +43,7 @@ integer :: i,j,k,info,rank,ik,ntot,nsetp,loopA,lim
 integer, dimension(ixt2) :: istate
 
 integer :: num2,tabsetf,Tnumf
-print*,'entree dans fit',ixt2,ntotal3
+!print*,'entree dans fit',ixt2,ntotal3
 
 lim=ixt2-iwk_div-iwk_biais
 
@@ -74,7 +74,7 @@ enddo
 
 call sig_total(npla,W2tot,sig2,ntotal3,ntot,iwk_div,prc_div)
 
-print*,'-------------------------------------------'
+!print*,'-------------------------------------------'
 ! -------------------------------------------
 
       do i=1,Ntot
@@ -103,11 +103,11 @@ write(557,*)BND(1,i),BND(2,i)
 enddo
 close(557)
 
-print*,'avant wtot',ixt2
+!print*,'avant wtot',ixt2
 solnr_sol(:)=0d0
 call bvls(A2tot,R2tot,BND,solnr_sol,chi2,nsetp,ww,istate,loopA)
-print*,'apres wtot',loopA,chi2,nsetp,chi2/(ntot-ixt2)
-print*,'chi2',chi2/(ntot-ixt2)
+!print*,'apres wtot',loopA,chi2,nsetp,chi2/(ntot-ixt2)
+!print*,'chi2',chi2/(ntot-ixt2)
 if(loopA>0)print*,'---------- WARNING !!!!--------',loopA
 
 
@@ -118,7 +118,7 @@ if(loopA>0)print*,'---------- WARNING !!!!--------',loopA
 ! ================================
 
 open(456,file='resultats/fort.440.sig',status='replace')
-print*,' solution LS simple avec sigma ================ > resultats/fort.440.sig'
+!print*,' solution LS simple avec sigma ================ > resultats/fort.440.sig'
 do j=1,iwk_div
 write(456,*)prc_mas(j)+solnr_sol(j+lim),solnr_sol(j+lim),xdx(j+lim)
 enddo
@@ -127,5 +127,9 @@ close(456)
 !112   format(f4.2)
 113   format(5x,f15.10,4x,i1,3x,i3,3x,i3,4x,e27.20,2x,i5)
 114   format(e27.20)
+
+do i = 1, ixt2 
+  print*,solnr_sol(i)
+end do
 
 End subroutine fit_planetes_bvls
