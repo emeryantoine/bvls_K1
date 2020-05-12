@@ -40,7 +40,7 @@ real(kind=8) :: chi2,sos
 integer :: i,j,k,info,rank,ik,ntot,nsetp,loopA,lim
 integer, dimension(ixt2) :: istate
 real :: reaad, min1=5e-3, small = 1d0, val
-integer :: num2,tabsetf,Tnumf, b = 0
+integer :: num2,tabsetf,Tnumf, zero = 0
 integer, dimension(10) :: inf
 !print*,'entree dans fit',ixt2,ntotal3
 
@@ -92,12 +92,18 @@ if(.true.) then
     do j = 1, ixt2
       if(abs(A2tot(i,j)) .lt. min1) then
         A2tot(i,j) = 0d0
-        b = b + 1
+        zero = zero + 1
       end if
     end do
   end do
 endif
-print*, "B :",b,"/",ntot*ixt2, ":", 100*(real(b)/real(ntot*ixt2)) ,"%"
+
+do i = 1, ntot
+  do j = 1, ixt2
+    if(abs(A2tot(i,j)) .eq. 0) zero = zero + 1
+  end do
+end do
+print*, "zero :",zero,"/",ntot*ixt2, ":", 100*(real(zero)/real(ntot*ixt2)) ,"%"
 
 info = 0d0
 do i = 1,ixt2

@@ -55,3 +55,6 @@ Appel avec agnes, plan de travaille a partir d'un code. Ajout du calcul de la co
 
 05/05 :
 Passage au cas complet, retour a BVLS etude de la covariance, variance et tete de la matrice. Choix des futures optimisations en fonctions des resultats
+
+12/05 :
+lecture de l'article sur l'etude de matrice en cours, matrice e RAW.out.412 creuse a 96%. Finir de lire l'article pour savoir comment handle ce genre de matrice, ou plutot JtWJ qui est la matrice carre que l'on va utiliser. Etudier la shape de JtWJ. Jolie visualisations en ppm pour voir la tete de la matrice complete, raffinee ...

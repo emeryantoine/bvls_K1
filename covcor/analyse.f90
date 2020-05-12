@@ -24,6 +24,9 @@ do i = 1, height, 100
         zeros(x) = zeros(x) + 1
         change = change + 1
       endif
+      if (abs(tmp(y,x)) .eq. 0d0) then
+        change = change + 1
+      endif
     end do
   enddo
 
