@@ -4,9 +4,9 @@ PROGRAM MAIN
   real(kind=8), dimension(100,width) :: tmp
   integer, dimension(width-3) :: zeros, neg, smalls
   real(kind=8), dimension(width) :: tmp_RA
-  integer :: zero=0, small=0, supone=0, total=0, change = 0
+  integer :: change = 0
 
-open(3, file="../../transfert/cas_complet/RA.out", status='old', action='read')
+open(3, file="../../transfert/cas_complet/040520/RAW.out.412", status='old', action='read')
 open(2, file="./zero.ppm", status="new", action="write")
 write(2,'(a)')"P2"
 write(2,'(a)')"412 1419"
@@ -30,10 +30,10 @@ do i = 1, height, 100
   do x = 4,  width
     write(2, *) zeros(x)
   enddo
-
 end do
 
-print*, change, 141900*74
+
+print*, change, 141900*412
 
 close(3)
 close(2)
