@@ -28,11 +28,11 @@ do i = 1, height, 100
   enddo
 
   do x = 4,  width
-    if(zeros(x) .ne. 0) then
+    if(zeros(x) .gt. 50) then
       !write(2, *) zeros(x)
-      write(2, *) 100
+      write(2, *)0
     else
-      write(2,*) 25
+      write(2,*)100
     endif
   enddo
 end do
