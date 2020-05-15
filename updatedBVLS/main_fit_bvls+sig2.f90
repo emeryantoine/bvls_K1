@@ -39,9 +39,10 @@ real(kind=8), dimension(ntotal3) :: Wtot,Rtot,zz,datjjf2,unite
 real(kind=8) :: chi2,sos
 integer :: i,j,k,info,rank,ik,ntot,nsetp,loopA,lim
 integer, dimension(ixt2) :: istate
-real :: reaad, min1=5e-3, small = 1d0, val
-integer :: num2,tabsetf,Tnumf, zero = 0
+real :: reaad, min1=5e-3, small = 1d0, val = 0
+integer :: num2,tabsetf,Tnumf, zero = 0, summ = 0
 integer, dimension(10) :: inf
+integer, dimension(ixt2) :: nonnul
 !print*,'entree dans fit',ixt2,ntotal3
 
 lim=ixt2-iwk_div-iwk_biais
@@ -87,40 +88,57 @@ close(556)
 !  end do
 !end if
 
+
 if(.true.) then
   do i = 1, ntot
     do j = 1, ixt2
-      if(abs(A2tot(i,j)) .lt. min1) then
+      if(abs(A2tot(i,j)) < min1) then
+      !if(.true.) then
         A2tot(i,j) = 0d0
         zero = zero + 1
       end if
+      !if(A2tot(i,j) .eq. 0) zero = zero + 1
+      !if(j .eq. 58) then
+      !  A2tot(i,j) = 0d0
+      !endif
     end do
   end do
 endif
 
-do i = 1, ntot
-  do j = 1, ixt2
-    if(abs(A2tot(i,j)) .eq. 0) zero = zero + 1
-  end do
-end do
 print*, "zero :",zero,"/",ntot*ixt2, ":", 100*(real(zero)/real(ntot*ixt2)) ,"%"
 
-info = 0d0
-do i = 1,ixt2
-  do j = 1, ntot
-    val = abs(A2tot(j,i))
-    if(val == 0d0) inf(1) = inf(1) + 1
-    if(val > 1d0) inf(2) = inf(2) + 1
-    if(val < 10e-2 .and. val >10e-3) inf(3) = inf(3) + 1
-    if(val < 10e-3 .and. val >10e-4) inf(4) = inf(4) + 1
-    if(val < 10e-4 .and. val >10e-5) inf(5) = inf(5) + 1
-    if(val < 10e-5 .and. val >10e-6) inf(6) = inf(6) + 1
-    if(val < 10e-6 .and. val >10e-7) inf(7) = inf(7) + 1
-    if(val < 10e-7 .and. val >10e-8) inf(8) = inf(8) + 1
-    if(val < 10e-8 .and. val >10e-9) inf(9) = inf(9) + 1
-    if(val < 10e-9) inf(10) = inf(10) + 1
+nonnul(:) = 0
+do j = 1, ixt2
+  do i = 1,ntot
+    if(A2tot(i,j) /= 0) nonnul(j) = nonnul(j) + 1
   end do
 end do
+
+print*, "colonnes nulles ?:"
+do i = 1, ixt2
+  print*, i, nonnul(i)
+enddo
+
+summ = SUM(nonnul)
+print*, "comparaison",summ, zero, summ+zero, ntot*ixt2
+
+if(.false.)then
+  do i = 1,ixt2
+    do j = 1, ntot
+      val = abs(A2tot(j,i))
+      if(val == 0d0) inf(1) = inf(1) + 1
+      if(val > 1d0) inf(2) = inf(2) + 1
+      if(val < 10e-2 .and. val >10e-3) inf(3) = inf(3) + 1
+      if(val < 10e-3 .and. val >10e-4) inf(4) = inf(4) + 1
+      if(val < 10e-4 .and. val >10e-5) inf(5) = inf(5) + 1
+      if(val < 10e-5 .and. val >10e-6) inf(6) = inf(6) + 1
+      if(val < 10e-6 .and. val >10e-7) inf(7) = inf(7) + 1
+      if(val < 10e-7 .and. val >10e-8) inf(8) = inf(8) + 1
+      if(val < 10e-8 .and. val >10e-9) inf(9) = inf(9) + 1
+      if(val < 10e-9) inf(10) = inf(10) + 1
+    end do
+  end do
+end if
 !print*, "zero, supone, 10e-2 a 10e-9"
 !print*, inf
 do i = 2, 10
@@ -131,9 +149,13 @@ end do
 !print*, "smallest number", small
 open(557,file='../../transfert/cas_complet/040520/BND.out',status='old')
 do i=1,ixt2
-read(557,*)BND(1,i),BND(2,i)
+  read(557,*)BND(1,i),BND(2,i)
 enddo
 close(557)
+
+if(.false.) then
+  BND(:,:) = BND(:,:) * 100
+endif
 
 !print*,'avant wtot',ixt2
 solnr_sol(:)=0d0
@@ -155,7 +177,7 @@ OPEN(42, file="ref.out", status="old")
 !print*, "result, reference, res/ref"
 do j=1,ixt2
   read(42,*) reaad
-  print*,solnr_sol(j), reaad, solnr_sol(j)/reaad
+  print*, solnr_sol(j), reaad, real(real(solnr_sol(j))/real(reaad))
   !print*, solnr_sol(j)
 enddo
 
