@@ -105,7 +105,7 @@ if(.true.) then
   end do
 endif
 
-print*, "zero :",zero,"/",ntot*ixt2, ":", 100*(real(zero)/real(ntot*ixt2)) ,"%"
+!print*, "zero :",zero,"/",ntot*ixt2, ":", 100*(real(zero)/real(ntot*ixt2)) ,"%"
 
 nonnul(:) = 0
 do j = 1, ixt2
@@ -114,13 +114,13 @@ do j = 1, ixt2
   end do
 end do
 
-print*, "colonnes nulles ?:"
-do i = 1, ixt2
-  print*, i, nonnul(i)
-enddo
+!print*, "colonnes nulles ?:"
+!do i = 1, ixt2
+!  print*, i, nonnul(i)
+!enddo
 
-summ = SUM(nonnul)
-print*, "comparaison",summ, zero, summ+zero, ntot*ixt2
+!summ = SUM(nonnul)
+!print*, "comparaison",summ, zero, summ+zero, ntot*ixt2
 
 if(.false.)then
   do i = 1,ixt2
@@ -153,7 +153,7 @@ do i=1,ixt2
 enddo
 close(557)
 
-if(.false.) then
+if(.true.) then
   BND(:,:) = BND(:,:) * 100
 endif
 
@@ -173,7 +173,7 @@ if(loopA>0)print*,'---------- WARNING !!!!--------',loopA
 !close(556)
 
 !print*,'SOL BVLS-------------------------------------------'
-OPEN(42, file="ref.out", status="old")
+OPEN(42, file="refx100.out", status="old")
 !print*, "result, reference, res/ref"
 do j=1,ixt2
   read(42,*) reaad
