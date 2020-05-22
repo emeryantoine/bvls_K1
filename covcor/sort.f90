@@ -12,7 +12,6 @@ real(kind=8), dimension(2,height) :: bndsort
 real(kind=8), dimension(2,1) :: lubnd
 
 open(1, file="../../transfert/cas_complet/040520/RAW.out.412", status="old", action = "read")
-
 do i = 1, height
   read(1,*) lu
   id(i) = i
@@ -62,7 +61,6 @@ do i = 1, height
   write(1,*) bndsort(:,i)
 end do
 close(1)
-
 
 status = system("rm -f total.ppm")
 open(1, file="./total.ppm", status="new", action="write")
