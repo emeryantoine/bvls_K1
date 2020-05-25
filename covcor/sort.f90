@@ -5,8 +5,7 @@ real(kind=8), dimension(width) :: lu
 integer, dimension(width-3) :: zero
 integer, dimension(height) :: id, val
 integer :: tmpval, tmpid, prout
-intrinsic :: FINDLOC
-integer :: x(1)
+integer :: x, bash
 real(kind=8), dimension(height, width) :: mat
 real(kind=8), dimension(2,height) :: bndsort
 real(kind=8), dimension(2,1) :: lubnd
@@ -42,21 +41,22 @@ enddo
 open(1, file="../../transfert/cas_complet/040520/RAW.out.412", status="old", action="read")
 do i = 1, height
   read(1,*) lu(:)
-  x = FINDLOC(id, value=i)
-  mat(x(1), :) = lu(:)
+  x = MINLOC(id, dim=1, mask=(id > i-1))
+  mat(x, :) = lu(:)
 end do
 close(1)
 
 open(1, file="../../transfert/cas_complet/040520/BND.out", status="old",&
-action="write")
+action="read")
 do i =1, height
   read(1,*) lubnd(:,1)
-  x = findloc(id, value=i)
-  bndsort(:, x(1)) = lubnd(1,:)
+  x = MINloc(id, dim=1, mask=(id > i-1))
+  bndsort(:, x) = lubnd(:,1)
 end do
 close(1)
 
-open(1, file="../../transfert/cas_complet/040520/BND.out.sort")
+bash = system("rm -f ./BND.out.sort")
+open(1, file="./BND.out.sort", status="new", action="write")
 do i = 1, height
   write(1,*) bndsort(:,i)
 end do
