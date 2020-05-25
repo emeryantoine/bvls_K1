@@ -58,3 +58,6 @@ Passage au cas complet, retour a BVLS etude de la covariance, variance et tete d
 
 12/05 :
 lecture de l'article sur l'etude de matrice en cours, matrice e RAW.out.412 creuse a 96%. Finir de lire l'article pour savoir comment handle ce genre de matrice, ou plutot JtWJ qui est la matrice carre que l'on va utiliser. Etudier la shape de JtWJ. Jolie visualisations en ppm pour voir la tete de la matrice complete, raffinee ...
+
+25/05 :
+travaille de reorganisation de la matrice RAW.out.412, changement des lignes pour classes avec le plus de 0 en bas et le moins en haut. Next step, reprendre le papier BVLS et etudier en detail l'architecture et la structure du code bvls. Toujours trouver dedans oou est ce que le calcul de l'inversion de JtWJ est fait.
