@@ -44,11 +44,13 @@ integer :: num2,tabsetf,Tnumf, zero = 0, summ = 0
 integer, dimension(10) :: inf
 integer, dimension(ixt2) :: nonnul
 !print*,'entree dans fit',ixt2,ntotal3
+integer, dimension(:), allocatable :: test
 
 lim=ixt2-iwk_div-iwk_biais
 
 ntot=ntotal3+ixt2
 
+allocate(test(ntot))
 allocate(A2tot(ntot,ixt2))
 allocate(R2tot(ntot))
 allocate(W2tot(ntot))
@@ -64,7 +66,8 @@ W2tot(:)=0d0
 ! sert a la comparaison avec R
 ! on trouve les memes resultats
 
-open(556,file='../../transfert/cas_complet/040520/RAW.out.412',status='old')
+!open(556,file='../covcor/RAW.out.412.sort',status='old')
+open(556, file="../../transfert/cas_complet/040520/RAW.out.412", status="old")
 do i=1,ntot
 read(556,*)datjjf2(i),W2tot(i),R2tot(i),(A2tot(i,j),j=1,ixt2)
 enddo
@@ -153,18 +156,39 @@ do i=1,ixt2
 enddo
 close(557)
 
-if(.true.) then
+if(.false.) then
   BND(:,:) = BND(:,:) * 100
 endif
 
 !print*,'avant wtot',ixt2
 solnr_sol(:)=0d0
 call bvls(A2tot,R2tot,BND,solnr_sol,chi2,nsetp,ww,istate,loopA)
+print *, A2tot(1,:)
 !solnr_sol=-solnr_sol
 !print*,'apres wtot',loopA,chi2,nsetp,chi2/(ntot-ixt2)
 !print*,'chi2',chi2/(ntot-ixt2)
 if(loopA>0)print*,'---------- WARNING !!!!--------',loopA
 
+test(:) = 0
+do i = 1,ntot
+  do j = 1, ixt2
+    if(A2tot(i,j) /= 0) test(i) = test(i) + 1
+  end do
+end do
+
+if(.false.) then
+  do i = 1, 412
+    print*, test(i)
+  end do
+endif
+
+call system("rm -f ./outputA.out")
+open(314, file="./outputA.out", status="new", action="write")
+if(.true.) then
+  do i = 1, ntot
+    write(314, *) A2tot(i,:)
+  enddo
+endif
 
 !open(556,file='RA.out.postfit',status='replace')
 !do i=1,ntotal3
@@ -173,7 +197,7 @@ if(loopA>0)print*,'---------- WARNING !!!!--------',loopA
 !close(556)
 
 !print*,'SOL BVLS-------------------------------------------'
-OPEN(42, file="refx100.out", status="old")
+OPEN(42, file="ref.out", status="old")
 !print*, "result, reference, res/ref"
 do j=1,ixt2
   read(42,*) reaad
