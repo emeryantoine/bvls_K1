@@ -599,6 +599,7 @@ REAL(KIND(ONEDP)) FUNCTION NRM2 (X)
    REAL(KIND(ONEDP)) ABSXI, X(:), NORM, SCALE, SSQ
    INTEGER N, IX
    N=SIZE(X)
+   print*, "norme on : ", N
    IF( N < 1)THEN
       NORM  = ZERO
    ELSE IF( N == 1 )THEN

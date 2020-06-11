@@ -15,4 +15,5 @@ covcor/outputA.ppm
 updatedBVLS/BND.out
 updatedBVLS/RAW.out.412
 updatedBVLS/outputA.out
-
+covcor/total.ppm
+updatedBVLS/Rtilde
