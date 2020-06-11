@@ -1,30 +1,23 @@
 PROGRAM MAIN
 
-  integer, parameter :: height=25013, width=415
-  real(kind=8), dimension(width) :: tmp
+  integer, parameter :: height=142388, width=415
+  real(kind=8), dimension(width) :: tmp, cnt
 
-open(3, file="../../transfert/cas_complet/040520/RAW.out.412", status='old', action='read')
-open(2, file="./zero.ppm", status="new", action="write")
-write(2,'(a)')"P2"
-write(2,'(a)')"412 142388"
-write(2,'(a)')"100"
+  cnt(:) = 0
+open(3, file="./RAW.out.412.sort", status='old', action='read')
 
 do i = 1, height
   read(3, *) tmp(:)
-  
+  cnt1 = 0
   do j = 4, width
-    if(abs(tmp(j)) > 5e-3) then
-      write(2,*) 100
-    else
-      write(2,*) 0
-    end if
+    if(abs(tmp(j)) > 5e-3) cnt(j) = cnt(j) + 1
   end do
 end do
 
-
-print*, change, 141900*412
+do i = 1, width
+  print*, cnt(i)
+end do
 
 close(3)
-close(2)
 
 END PROGRAM MAIN

@@ -10,7 +10,7 @@ real(kind=8), dimension(height, width) :: mat
 real(kind=8), dimension(2,height) :: bndsort
 real(kind=8), dimension(2,1) :: lubnd
 
-open(1, file="../../transfert/cas_complet/040520/RAW.out.412", status="old", action = "read")
+open(1, file="../updatedBVLS/RAW.out.412", status="old", action = "read")
 do i = 1, height
   read(1,*) lu
   id(i) = i
@@ -46,22 +46,6 @@ do i = 1, height
 end do
 close(1)
 
-open(1, file="../../transfert/cas_complet/040520/BND.out", status="old",&
-action="read")
-do i =1, height
-  read(1,*) lubnd(:,1)
-  x = MINloc(id, dim=1, mask=(id > i-1))
-  bndsort(:, x) = lubnd(:,1)
-end do
-close(1)
-
-bash = system("rm -f ./BND.out.sort")
-open(1, file="./BND.out.sort", status="new", action="write")
-do i = 1, height
-  write(1,*) bndsort(:,i)
-end do
-close(1)
-
 status = system("rm -f total.ppm")
 open(1, file="./total.ppm", status="new", action="write")
 write(1,'(a)') "P2"
@@ -87,7 +71,7 @@ do i = 1, height
 end do
 
 prout = system("rm -f ./RAW.out.412.sort")
-open(1, file="../../transfert/cas_complet/040520/RAW.out.412.sort", status ="new", action="write")
+open(1, file="./RAW.out.412.sort", status ="new", action="write")
 do i = 1, height
   write(1, *) mat(i,:)
 end do

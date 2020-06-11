@@ -67,7 +67,7 @@ W2tot(:)=0d0
 ! on trouve les memes resultats
 
 !open(556,file='../covcor/RAW.out.412.sort',status='old')
-open(556, file="../../transfert/cas_complet/040520/RAW.out.412", status="old")
+open(556, file="./RAW.out.412", status="old")
 do i=1,ntot
 read(556,*)datjjf2(i),W2tot(i),R2tot(i),(A2tot(i,j),j=1,ixt2)
 enddo
@@ -125,32 +125,8 @@ end do
 !summ = SUM(nonnul)
 !print*, "comparaison",summ, zero, summ+zero, ntot*ixt2
 
-if(.false.)then
-  do i = 1,ixt2
-    do j = 1, ntot
-      val = abs(A2tot(j,i))
-      if(val == 0d0) inf(1) = inf(1) + 1
-      if(val > 1d0) inf(2) = inf(2) + 1
-      if(val < 10e-2 .and. val >10e-3) inf(3) = inf(3) + 1
-      if(val < 10e-3 .and. val >10e-4) inf(4) = inf(4) + 1
-      if(val < 10e-4 .and. val >10e-5) inf(5) = inf(5) + 1
-      if(val < 10e-5 .and. val >10e-6) inf(6) = inf(6) + 1
-      if(val < 10e-6 .and. val >10e-7) inf(7) = inf(7) + 1
-      if(val < 10e-7 .and. val >10e-8) inf(8) = inf(8) + 1
-      if(val < 10e-8 .and. val >10e-9) inf(9) = inf(9) + 1
-      if(val < 10e-9) inf(10) = inf(10) + 1
-    end do
-  end do
-end if
-!print*, "zero, supone, 10e-2 a 10e-9"
-!print*, inf
-do i = 2, 10
-  inf(1) = inf(1) + inf(i)
-end do
-!print*, "total :", inf(1), ntot*ixt2
-
 !print*, "smallest number", small
-open(557,file='../../transfert/cas_complet/040520/BND.out',status='old')
+open(557,file='./BND.out',status='old')
 do i=1,ixt2
   read(557,*)BND(1,i),BND(2,i)
 enddo

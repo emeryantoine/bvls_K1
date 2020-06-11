@@ -9,3 +9,10 @@ RAW_20.out
 maqao*
 lsvceiter
 covcor/zero.ppm
+covcor/RAW.out.412.sort
+covcor/origin.ppm
+covcor/outputA.ppm
+updatedBVLS/BND.out
+updatedBVLS/RAW.out.412
+updatedBVLS/outputA.out
+
