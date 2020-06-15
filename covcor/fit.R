@@ -1,6 +1,6 @@
 system("paste Residuals.txt Jacobian.txt > RA.out")
-dat=as.matrix(read.table("RA.out"))
-deriv=dat[,c(2:6)]
+dat=as.matrix(read.table("../../transfert/cas_complet/040520/RAW.out.412"))
+deriv=dat[,c(4:415)]
 
 oc2 <- dat[,c(1)]*1.0
 result2 <- lsfit(deriv,oc2, intercept = FALSE)

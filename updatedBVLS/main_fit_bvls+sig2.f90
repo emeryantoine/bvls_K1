@@ -17,8 +17,8 @@ implicit none
 
   end interface
 
-integer, parameter :: iwk_div=0, iwk_biais=0, ixt2=12 !iwk_div=347,iwk_biais=11, ixt2=412
-integer, parameter :: ntotal3 = 1500 !ntotal3=141976
+integer, parameter :: iwk_div=347, iwk_biais=11, ixt2=412 !iwk_div=347,iwk_biais=11, ixt2=412
+integer, parameter :: ntotal3 = 141976 !ntotal3=141976
 !integer :: ixt2,ntotal3,iwk_div,npla,iwk_biais
 
 !real(kind=8), dimension(ntotal3,ixt2), intent(in) :: PD2
@@ -69,7 +69,8 @@ W2tot(:)=0d0
 ! on trouve les memes resultats
 
 !open(556,file='../covcor/RAW.out.412.sort',status='old')
-open(556, file="./RAW.out.412", status="old")
+!open(556, file="./RAW.out.412", status="old")
+open(556, file="../../transfert/cas_complet/040520/RAW.out.412", status="old")
 do i=1,ntot
 read(556,*)datjjf2(i),W2tot(i),R2tot(i),(A2tot(i,j),j=1,ixt2)
 enddo
@@ -128,7 +129,7 @@ end do
 !print*, "comparaison",summ, zero, summ+zero, ntot*ixt2
 
 !print*, "smallest number", small
-open(557,file='./BND.out',status='old')
+open(557,file='../../transfert/cas_complet/040520/BND.out',status='old')
 !open(557,file='../../transfert/cas_complet/040520/BND.out',status='old')
 do i=1,ixt2
   read(557,*)BND(1,i),BND(2,i)
@@ -161,8 +162,8 @@ do i = 1, nsetp
     R(i,j) = A2tot(i,j)
   enddo
 enddo
-print*, "R tilde fait"
 
+!print*, "R tilde fait"
 !m = size(Rt, 1)
 !n = size(Rt, 2)
 !print*, "Rt", m, n
@@ -178,19 +179,19 @@ print*, "R tilde fait"
 !print*, "At", m, n
 
 
-Rt = transpose(R)
-At = transpose(A2tot)
-print*, "transposee faites"
+!Rt = transpose(R)
+!At = transpose(A2tot)
+!print*, "transposee faites"
 
-RtR = matmul(Rt, R)
-AtA = matmul(At, A2tot)
-print*, "matmul fait"
+!RtR = matmul(Rt, R)
+!AtA = matmul(At, A2tot)
+!print*, "matmul fait"
 
-do i = 1, nsetp
-  do j = 1, nsetp
-    print*, RtR(i,j), AtA(i,j)
-  enddo
-enddo
+!do i = 1, nsetp
+!  do j = 1, nsetp
+!    print*, RtR(i,j), AtA(i,j)
+!  enddo
+!enddo
 
 if(.false.) then
   test(:) = 0
@@ -209,7 +210,7 @@ endif
 !close(556)
 
 
-if(.false.) then
+if(.true.) then
   !print*,'SOL BVLS-------------------------------------------'
   !OPEN(42, file="ref.out", status="old")
   !print*, "result, reference, res/ref"

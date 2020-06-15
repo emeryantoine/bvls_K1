@@ -342,8 +342,10 @@ SUBROUTINE TEST_COEF_J_FOR_DIAG!_ELT_AND_DIRECTION_OF_CHANGE
 !   near linear dependence.   
 !   
    ASAVE=A(NPP1,J)   
-   call HTC (NPP1, A(1:M,J), UP)
-   UNORM = NRM2(A(1:NSETP,J))
+   !call HTC (NPP1, A(1:M,J), UP, J)
+   call HTC_old(NPP1, A(1:M,J), UP)
+   !UNORM = NRM2(1, J, A(1:NSETP,J), 69710, 46)
+   UNORM = NRM2_old(A(1:NSETP,J))
    IF  ( abs(A(NPP1,J)) > EPS * UNORM) then
 !
 !   Column J is sufficiently independent.  Copy b into Z, update Z.
@@ -561,7 +563,8 @@ SUBROUTINE TERMINATION
 !   Compute the norm of the residual vector.
       SM=ZERO   
       IF  (NPP1   <=   M) then 
-         SM=NRM2(B(NPP1:M))
+         !SM=NRM2(NPP1, -1, B(NPP1:M), 0,0)
+         SM = NRM2_old(B(NPP1:M))
       else  
          W(1:N)=ZERO
       END IF
@@ -589,7 +592,7 @@ SUBROUTINE ROTG(SA,SB,C,S)
    RETURN
 END SUBROUTINE !ROTG
 
-REAL(KIND(ONEDP)) FUNCTION NRM2 (X)
+REAL(KIND(ONEDP)) FUNCTION NRM2 (start, col, X, limvert, limhori)
 !
 !   NRM2 returns the Euclidean norm of a vector via the function
 !   name, so that
@@ -597,9 +600,15 @@ REAL(KIND(ONEDP)) FUNCTION NRM2 (X)
 !   NRM2 := sqrt( x'*x )
 !
    REAL(KIND(ONEDP)) ABSXI, X(:), NORM, SCALE, SSQ
-   INTEGER N, IX
+   INTEGER N, IX, start, col, limvert, limhori
    N=SIZE(X)
-   print*, "norme on : ", N
+   if(col /= -1) then
+      if(col > limvert) then
+      if(start > limvert) N = 0
+      if(N > limvert) N = limvert
+     endif
+   endif
+   !print*, "norme on : ", N
    IF( N < 1)THEN
       NORM  = ZERO
    ELSE IF( N == 1 )THEN
@@ -607,7 +616,6 @@ REAL(KIND(ONEDP)) FUNCTION NRM2 (X)
    ELSE
       SCALE = ZERO
       SSQ   = ONEDP
-!
       DO IX = 1, N
          ABSXI = ABS( X( IX ) )
           IF(ABSXI > ZERO )THEN
@@ -626,16 +634,66 @@ REAL(KIND(ONEDP)) FUNCTION NRM2 (X)
    RETURN
 END FUNCTION
 
-SUBROUTINE HTC (P, U, UP)
+REAL(KIND(ONEDP)) FUNCTION NRM2_old (X)
+!
+!   NRM2 returns the Euclidean norm of a vector via the function
+!   name, so that
+!
+!   NRM2 := sqrt( x'*x )
+!
+   
+   REAL(KIND(ONEDP)) ABSXI, X(:), NORM, SCALE, SSQ
+   INTEGER N, IX
+   N=SIZE(X)
+   IF( N < 1)THEN
+      NORM  = ZERO
+   ELSE IF( N == 1 )THEN
+      NORM  = ABS( X( 1 ) )
+   ELSE
+      SCALE = ZERO
+      SSQ   = ONEDP
+      DO IX = 1, N
+         ABSXI = ABS( X( IX ) )
+          IF(ABSXI > ZERO )THEN
+             IF( SCALE < ABSXI )THEN
+                SSQ   = ONEDP + SSQ*( SCALE/ABSXI )**2
+                SCALE = ABSXI
+             ELSE
+                SSQ   = SSQ + ( ABSXI/SCALE )**2
+             END IF
+         END IF
+     END DO
+     NORM  = SCALE * SQRT( SSQ )
+   END IF
+!
+   NRM2_old = NORM
+   RETURN
+END FUNCTION
+
+
+SUBROUTINE HTC (P, U, UP, J)
+!
+!   Construct a Householder transormation.
+   INTEGER P, J
+   REAL(KIND(ONEDP)) U(:)
+   REAL(KIND(ONEDP)) UP, VNORM
+   VNORM=NRM2(P, J, U(P:SIZE(U)), 69710, 45)
+   IF(U(P) > ZERO) VNORM=-VNORM
+   UP=U(P)-VNORM
+   U(P)=VNORM
+END SUBROUTINE ! HTC
+
+SUBROUTINE HTC_old (P, U, UP)
 !
 !   Construct a Householder transormation.
    INTEGER P
    REAL(KIND(ONEDP)) U(:)
    REAL(KIND(ONEDP)) UP, VNORM
-   VNORM=NRM2(U(P:SIZE(U)))
+   VNORM=NRM2_old(U(P:SIZE(U)))
    IF(U(P) > ZERO) VNORM=-VNORM
    UP=U(P)-VNORM
    U(P)=VNORM
 END SUBROUTINE ! HTC
+
 
 END SUBROUTINE ! BVLS
