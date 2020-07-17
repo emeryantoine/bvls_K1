@@ -61,3 +61,9 @@ lecture de l'article sur l'etude de matrice en cours, matrice e RAW.out.412 creu
 
 25/05 :
 travaille de reorganisation de la matrice RAW.out.412, changement des lignes pour classes avec le plus de 0 en bas et le moins en haut. Next step, reprendre le papier BVLS et etudier en detail l'architecture et la structure du code bvls. Toujours trouver dedans oou est ce que le calcul de l'inversion de JtWJ est fait.
+
+23/06 :
+Beaucoup de temps depuis la derniere update. la reorganisation de la matrice s'est faite correctement, il y a un algo pour ca maintenant. Avec un code de visualisation on peut regarder a quoi ressemble la matrice maintenant. Dans le cas de RAW.out.412 on se retrouve avec une matrice plein a 55% et apres l'avoir reorganisee, on se retrouve avec une sous matrice en bas a droite completement nulle. La suite des evenements est de determiner comment exploiter au mieux le caracteur "creux" (que
+    55%) de la matrice en allant trifouiller dans BVLS. Ile serait aussi interessant de pouvoir determiner automatiquement la forme de la matrice et des diviser la matrice en 4 blocs, 3 non nul et 1 completement nul, afin de pouvoir automsatiser le travailler pour des jeux de donnee different ou pour lors de l'update de ce eu de donnee par exemple. Apres avoir fait tourne GPROF sur le code BVLS + mainfit, on tombe sur 2 fonctions ou la majoritee du temps est consomme. C'est donc ici que
+l'on va commencer a chercher si il est possible d'exploiter le caractere de la matrice triee. Les 2 fonctions sont : select_another_coeff_to et move_j_from_set_z_to_set_p_
+Une etude de leur structure et de la facon dont on peut les modifier est en cours. a suivre
