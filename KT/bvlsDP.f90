@@ -1,7 +1,3 @@
-!export OMP_NUM_THREADS=18
-!ifort main_fit_bvls+sig2.f90 bvls_openmp.f90 -openmp
-
-
 SUBROUTINE BVLS ( A, B, BND, X, RNORM, NSETP, W, INDEX, IERR )
 
 !*****************************************************************************80
@@ -137,7 +133,6 @@ SUBROUTINE BVLS ( A, B, BND, X, RNORM, NSETP, W, INDEX, IERR )
       integer IERR, M, N 
       integer I, IBOUND, II, IP, ITER, ITMAX, IZ, IZ1, IZ2
       integer J, JJ, JZ, L, LBOUND, NPP1, NSETP
-      !integer :: counter = 0
 
 integer INDEX(:)
 !
@@ -148,36 +143,30 @@ integer INDEX(:)
       real(kind(ONEDP)) :: A(:,:), B(:), S(size(A,2)), X(:), W(:),&
                                  Z(size(A,1)), BND(:,:)
       real(kind(ONEDP)) ALPHA, ASAVE, CC, EPS, RANGE, RNORM
-      real(kind(ONEDP)) NOrm, SM, SS, T, UNORM, UP, ZTEST
-
+      real(kind(ONEDP)) NORM, SM, SS, T, UNORM, UP, ZTEST
 
 CALL  INITIALIZE 
 !   
 !   The above call will set IERR. 
-
-
 LOOPA: DO
 !   
 !   Quit on error flag, or if all coefficients are already in the 
 !   solution, .or. if M columns of A have been triangularized.
    IF  (IERR  /=   0  .or.  IZ1  > IZ2 .or. NSETP >= M) exit LOOPA   
-!
-  !print *, counter
- !counter=counter+1
+!   
    CALL  SELECT_ANOTHER_COEFF_TO!_SOLVE_FOR 
 !   
 !   See if no index was found to be moved from set Z to set P.   
 !   Then go to termination.   
    IF  ( .not. FIND ) exit LOOPA 
 !   
-   !CALL  MOVE_J_FROM_SET_Z_TO_SET_P
-   CALL MOVE_J_FROM_SET_Z_TO_SET_P_2
+   CALL  MOVE_J_FROM_SET_Z_TO_SET_P
 !   
    CALL  TEST_SET_P_AGAINST_CONSTRAINTS
 !   
 !   The above call may set IERR. 
 !   All coefficients in set P are strictly feasible.  Loop back.
-END DO LOOPA
+END DO LOOPA  
 !   
 CALL  TERMINATION
 RETURN
@@ -186,8 +175,8 @@ CONTAINS  ! These are internal subroutines.
 SUBROUTINE INITIALIZE 
    M=size(A,1); N=size(A,2)
 
- !print*,'M',M
- !print*,'N',N
+ print*,'M',M
+ print*,'N',N
    IF  (M  <=  0 .or. N  <=  0) then
       IERR = 1
       RETURN
@@ -227,12 +216,12 @@ IERR = 0
    ITMAX=100*N 
    ITER=0
 
-!print*,IERR,EPS,ITMAX,ITER
+print*,IERR,EPS,ITMAX,ITER
 !   Initialize the array index().  
    DO I=1,N
       INDEX(I)=I
    END DO
-
+!   
    IZ2=N 
    IZ1=1 
    NSETP=0   
@@ -277,8 +266,8 @@ IERR = 0
 !
       IF  ( abs(X(J))   >   ZERO ) then 
 !
-        !Change B() to reflect a nonzero starting value for X(J). 
-        B(1:M)=B(1:M)-A(1:M,J)*X(J)
+!   Change B() to reflect a nonzero starting value for X(J). 
+         B(1:M)=B(1:M)-A(1:M,J)*X(J) 
       END IF
       IZ=IZ+1 
    END DO! ( IZ   <=   IZ2 )
@@ -302,7 +291,6 @@ SUBROUTINE  SELECT_ANOTHER_COEFF_TO!_SOLVE_FOR
 !   4. If no coefficient is selected, set FIND = false.
 !
    FIND = .FALSE.
-   !CAN'T PARALLELIZE HERE
    DO IZ=IZ1,IZ2 
       J=INDEX(IZ)   
 !
@@ -344,19 +332,16 @@ SUBROUTINE TEST_COEF_J_FOR_DIAG!_ELT_AND_DIRECTION_OF_CHANGE
 !   near linear dependence.   
 !   
    ASAVE=A(NPP1,J)   
-   !call HTC (NPP1, A(1:M,J), UP, J)
-   call HTC_old(NPP1, A(1:M,J), UP)
-   !UNORM = NRM2(1, J, A(1:NSETP,J), 69710, 46)
-   UNORM = NRM2_old(A(1:NSETP,J))
+   call HTC (NPP1, A(1:M,J), UP)
+   UNORM = NRM2(A(1:NSETP,J))
    IF  ( abs(A(NPP1,J)) > EPS * UNORM) then
 !
 !   Column J is sufficiently independent.  Copy b into Z, update Z.
       Z(1:M)=B(1:M)
 ! Compute product of transormation and updated right-hand side.
-    NORM=A(NPP1,J); A(NPP1,J)=UP
+      NORM=A(NPP1,J); A(NPP1,J)=UP
       IF(ABS(NORM) > ZERO) THEN
          SM=DOT_PRODUCT(A(NPP1:M,J)/NORM, Z(NPP1:M))/UP
-         !print*, "SM :", SM
          Z(NPP1:M)=Z(NPP1:M)+SM*A(NPP1:M,J)
          A(NPP1,J)=NORM
       END IF
@@ -391,8 +376,6 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
 !   The index  J=index(IZ)  has been selected to be moved from
 !   set Z to set P.  Z() contains the old B() adjusted as though X(J) = 0.  
 !   A(*,J) contains the new Householder transformation vector.    
-   integer :: col = 47, line = 69711 
-
    B(1:M)=Z(1:M)
 !
    INDEX(IZ)=INDEX(IZ1)  
@@ -423,68 +406,7 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
       II=INDEX(I)   
       Z(I)=Z(I)/A(I,II) 
    END DO 
-END SUBROUTINE! ( MOVE J FROM SET Z TO SET P ) 
-
-SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P_2
-!
-!   The index  J=index(IZ)  has been selected to be moved from
-!   set Z to set P.  Z() contains the old B() adjusted as though X(J) = 0.  
-!   A(*,J) contains the new Householder transformation vector.    
-   integer :: col = 47, line = 69711 
-
-   B(1:M)=Z(1:M)
-!
-   INDEX(IZ)=INDEX(IZ1)  
-   INDEX(IZ1)=J  
-   IZ1=IZ1+1 
-   NSETP=NPP1
-   NPP1=NPP1+1   
-!   The following loop can be null or not required.
-   NORM=A(NSETP,J); A(NSETP,J)=UP
-   IF(ABS(NORM) > ZERO) THEN
-     DO JZ=IZ1,IZ2 
-         JJ=INDEX(JZ)
-         !SM=DOT_PRODUCT(A(NSETP:M,J)/NORM, A(NSETP:M,JJ))/UP
-         SM = 0
-         if (NSETP < line) then
-            !$OMP PARALLEL
-            !$OMP DO SCHEDULE(dynamic,512)  
-            do i = NSETP, line
-              SM = SM + (A(i,J)/NORM) * (A(i,JJ)/UP)
-            enddo
-            !$OMP END DO
-            !$OMP DO SCHEDULE(dynamic,512)  
-            do i = NSETP, line
-              A(i, JJ) = A(i, JJ) + SM*A(i,J)
-            enddo
-            !$OMP END DO
-            !$OMP END PARALLEL
-          endif
-         !A(NSETP:M,JJ)=A(NSETP:M,JJ)+SM*A(NSETP:M,J)
-      END DO
-   A(NSETP,J)=NORM
-   W(J)=ZERO 
-   END IF
-!  The following loop can be null.
-   
-  !$OMP PARALLEL
-  !$OMP DO SCHEDULE(dynamic,512)
-   DO L=NPP1,M   
-      A(L,J)=ZERO
-   END DO
-   !$OMP END DO
-   !$OMP END PARALLEL
-!
-!
-!   Solve the triangular system.  Store this solution temporarily in Z().
-   
-   DO I = NSETP, 1, -1
-      IF  (I  /=  NSETP) Z(1:I)=Z(1:I)-A(1:I,II)*Z(I+1)
-      II=INDEX(I)   
-      Z(I)=Z(I)/A(I,II) 
-   END DO 
-   
- END SUBROUTINE! ( MOVE J FROM SET Z TO SET P 2 )
+END SUBROUTINE! ( MOVE J FROM SET Z TO SET P )  
 
 SUBROUTINE TEST_SET_P_AGAINST_CONSTRAINTS 
 !
@@ -628,8 +550,7 @@ SUBROUTINE TERMINATION
 !   Compute the norm of the residual vector.
       SM=ZERO   
       IF  (NPP1   <=   M) then 
-         !SM=NRM2(NPP1, -1, B(NPP1:M), 0,0)
-         SM = NRM2_old(B(NPP1:M))
+         SM=NRM2(B(NPP1:M))
       else  
          W(1:N)=ZERO
       END IF
@@ -657,7 +578,7 @@ SUBROUTINE ROTG(SA,SB,C,S)
    RETURN
 END SUBROUTINE !ROTG
 
-REAL(KIND(ONEDP)) FUNCTION NRM2 (start, col, X, limvert, limhori)
+REAL(KIND(ONEDP)) FUNCTION NRM2 (X)
 !
 !   NRM2 returns the Euclidean norm of a vector via the function
 !   name, so that
@@ -665,15 +586,8 @@ REAL(KIND(ONEDP)) FUNCTION NRM2 (start, col, X, limvert, limhori)
 !   NRM2 := sqrt( x'*x )
 !
    REAL(KIND(ONEDP)) ABSXI, X(:), NORM, SCALE, SSQ
-   INTEGER N, IX, start, col, limvert, limhori
+   INTEGER N, IX
    N=SIZE(X)
-   if(col /= -1) then
-      if(col > limvert) then
-      if(start > limvert) N = 0
-      if(N > limvert) N = limvert
-     endif
-   endif
-   !print*, "norme on : ", N
    IF( N < 1)THEN
       NORM  = ZERO
    ELSE IF( N == 1 )THEN
@@ -681,6 +595,7 @@ REAL(KIND(ONEDP)) FUNCTION NRM2 (start, col, X, limvert, limhori)
    ELSE
       SCALE = ZERO
       SSQ   = ONEDP
+!
       DO IX = 1, N
          ABSXI = ABS( X( IX ) )
           IF(ABSXI > ZERO )THEN
@@ -699,66 +614,17 @@ REAL(KIND(ONEDP)) FUNCTION NRM2 (start, col, X, limvert, limhori)
    RETURN
 END FUNCTION
 
-REAL(KIND(ONEDP)) FUNCTION NRM2_old (X)
-!
-!   NRM2 returns the Euclidean norm of a vector via the function
-!   name, so that
-!
-!   NRM2 := sqrt( x'*x )
-!
-   
-   REAL(KIND(ONEDP)) ABSXI, X(:), NORM, SCALE, SSQ
-   INTEGER N, IX
-   N=SIZE(X)
-   IF( N < 1)THEN
-      NORM  = ZERO
-   ELSE IF( N == 1 )THEN
-      NORM  = ABS( X( 1 ) )
-   ELSE
-      SCALE = ZERO
-      SSQ   = ONEDP
-      DO IX = 1, N
-         ABSXI = ABS( X( IX ) )
-          IF(ABSXI > ZERO )THEN
-             IF( SCALE < ABSXI )THEN
-                SSQ   = ONEDP + SSQ*( SCALE/ABSXI )**2
-                SCALE = ABSXI
-             ELSE
-                SSQ   = SSQ + ( ABSXI/SCALE )**2
-             END IF
-         END IF
-     END DO
-     NORM  = SCALE * SQRT( SSQ )
-   END IF
-!
-   NRM2_old = NORM
-   RETURN
-END FUNCTION
-
-
-SUBROUTINE HTC (P, U, UP, J)
-!
-!   Construct a Householder transormation.
-   INTEGER P, J
-   REAL(KIND(ONEDP)) U(:)
-   REAL(KIND(ONEDP)) UP, VNORM
-   VNORM=NRM2(P, J, U(P:SIZE(U)), 69710, 45)
-   IF(U(P) > ZERO) VNORM=-VNORM
-   UP=U(P)-VNORM
-   U(P)=VNORM
-END SUBROUTINE ! HTC
-
-SUBROUTINE HTC_old (P, U, UP)
+SUBROUTINE HTC (P, U, UP)
 !
 !   Construct a Householder transormation.
    INTEGER P
    REAL(KIND(ONEDP)) U(:)
    REAL(KIND(ONEDP)) UP, VNORM
-   VNORM=NRM2_old(U(P:SIZE(U)))
+   VNORM=NRM2(U(P:SIZE(U)))
    IF(U(P) > ZERO) VNORM=-VNORM
    UP=U(P)-VNORM
    U(P)=VNORM
 END SUBROUTINE ! HTC
 
-
 END SUBROUTINE ! BVLS
+

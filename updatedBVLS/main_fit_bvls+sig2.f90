@@ -26,6 +26,7 @@ real(kind=8), dimension(2,ixt2) :: BND
   !real(kind=8), dimension(ntotal3), intent(in) :: sig2,omc3
 real(kind=8), dimension(ixt2) :: solnr_sol
 !real(kind=8), dimension(ntotal3),intent(out) :: LA_res
+real(kind=8) :: read_sol
 
 real(kind=8), dimension(:,:), allocatable :: A2tot,A2b
 real(kind=8), dimension(:),  allocatable :: R2tot, W2tot,R2b,W2b
@@ -211,15 +212,18 @@ endif
 !close(556)
 
 
-open(123, file="./fast.txt", status="old", ation="read")
+!open(123, file="./fast.txt", status="old", ation="read")
 if(.true.) then
   !print*,'SOL BVLS-------------------------------------------'
   !OPEN(42, file="ref.out", status="old")
   !print*, "result, reference, res/ref"
+  open(420, file='./output.txt', status='old')
   do j=1,ixt2
     !read(42,*) reaad
     !print*, solnr_sol(j), reaad, real(real(solnr_sol(j))/real(reaad))
-    print*, solnr_sol(j)
+    READ(420,*) read_sol
+    print*, read_sol, solnr_sol(j), read_sol-solnr_sol(j)
+    !write(420, '(6(E30.20,x))') solnr_sol(j)
   enddo
   close(42)
 endif
