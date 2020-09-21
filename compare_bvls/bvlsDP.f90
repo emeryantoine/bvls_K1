@@ -129,7 +129,6 @@ SUBROUTINE BVLS ( A, B, BND, X, RNORM, NSETP, W, INDEX, IERR )
 !   	Iteration counter.
 
       implicit none
-      integer :: funcstart, funcstop, htcstart, htcstop, functot=0, htctot=0
       logical FIND, HITBND, FREE1, FREE2, FREE 
       integer IERR, M, N 
       integer I, IBOUND, II, IP, ITER, ITMAX, IZ, IZ1, IZ2
@@ -169,8 +168,7 @@ LOOPA: DO
 !   All coefficients in set P are strictly feasible.  Loop back.
 END DO LOOPA
 
-print*, "temps fonction", functot
-print*, "temps htc", htctot
+print*, iter, "iterations"
 !   
 CALL  TERMINATION
 RETURN
@@ -336,10 +334,7 @@ SUBROUTINE TEST_COEF_J_FOR_DIAG!_ELT_AND_DIRECTION_OF_CHANGE
 !   near linear dependence.   
 !   
    ASAVE=A(NPP1,J)
-   call system_clock(htcstart)
    call HTC (NPP1, A(1:M,J), UP)
-   call system_clock(htcstop)
-   htctot = htctot + (htcstop-htcstart)
    UNORM = NRM2(A(1:NSETP,J))
    IF  ( abs(A(NPP1,J)) > EPS * UNORM) then
 !
@@ -392,7 +387,6 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
    NPP1=NPP1+1   
 !   The following loop can be null or not required.
    NORM=A(NSETP,J); A(NSETP,J)=UP
-   call system_clock(funcstart)
    IF(ABS(NORM) > ZERO) THEN
       DO JZ=IZ1,IZ2 
          JJ=INDEX(JZ)
@@ -414,8 +408,6 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
       II=INDEX(I)   
       Z(I)=Z(I)/A(I,II) 
    END DO 
-   call system_clock(funcstop)
-   functot = functot + (funcstop-funcstart)
 END SUBROUTINE! ( MOVE J FROM SET Z TO SET P )  
 
 SUBROUTINE TEST_SET_P_AGAINST_CONSTRAINTS 

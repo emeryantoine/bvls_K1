@@ -7,7 +7,7 @@ PROGRAM MAIN
 
 status = system("rm outputA.ppm")
 
-open(3, file="../updatedBVLS/outputA.out", status='old', action='read')
+open(3, file="../../transfert/RAW.out.412.sort", status='old', action='read')
 open(2,file="./outputA.ppm", status="new", action="write")
 write(2,'(a)') "P2"
 write(2, '(a)') "412 1420"

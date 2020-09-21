@@ -70,10 +70,11 @@ W2tot(:)=0d0
 ! on trouve les memes resultats
 
 !open(556,file='../covcor/RAW.out.412.sort',status='old')
-!open(556, file="./RAW.out.412", status="old")open(556, file="../../transfert/cas_complet/040520/RAW.out.412", status="old")
-!open(556, file="../../transfert/RAW.out.412.sort", status="old")
+!open(556, file="./RAW.out.412", status="old")
+!open(556, file="../../transfert/cas_complet/040520/RAW.out.412", status="old")
+open(556, file="../../transfert/RAW.out.412.sort", status="old")
 do i=1,ntot
-read(556,*)datjjf2(i),W2tot(i),R2tot(i),(A2tot(i,j),j=1,ixt2)
+  read(556,*)datjjf2(i),W2tot(i),R2tot(i),(A2tot(i,j),j=1,ixt2)
 enddo
 close(556)
 
@@ -230,7 +231,6 @@ if(.true.) then
   enddo
   close(42)
 endif
-
 
 111   format(29(d27.20,4x))
 !112   format(f4.2)

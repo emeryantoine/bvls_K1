@@ -129,10 +129,8 @@ SUBROUTINE BVLS ( A, B, BND, X, RNORM, NSETP, W, INDEX, IERR )
 !   	Iteration counter.
 
       implicit none
-      integer :: funcstart, funcstop
-      integer :: htcstart, htcstop, tot1 = 0, tot2= 0, tot3= 0
       logical FIND, HITBND, FREE1, FREE2, FREE 
-      integer IERR, M, N 
+      integer IERR, M, N, mx
       integer I, IBOUND, II, IP, ITER, ITMAX, IZ, IZ1, IZ2
       integer J, JJ, JZ, L, LBOUND, NPP1, NSETP
 
@@ -145,7 +143,7 @@ integer INDEX(:)
       real(kind(ONEDP)) :: A(:,:), B(:), S(size(A,2)), X(:), W(:),&
                                  Z(size(A,1)), BND(:,:)
       real(kind(ONEDP)) ALPHA, ASAVE, CC, EPS, RANGE, RNORM
-      real(kind(ONEDP)) NORM, SM, SS, T, UNORM, UP, ZTEST
+      real(kind(ONEDP)) NORM, SM, SS, T, UNORM, UP, ZTEST, SM2
 
 CALL  INITIALIZE 
 !   
@@ -170,10 +168,8 @@ LOOPA: DO
 !   All coefficients in set P are strictly feasible.  Loop back.
 END DO LOOPA
 
-print*, "temps 1", tot1
-print*, "temps 2", tot2
-print*, "temps 3", tot3
-!   
+!  
+print*, iter, "iterations"
 CALL  TERMINATION
 RETURN
 
@@ -391,39 +387,38 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
    NPP1=NPP1+1   
 !   The following loop can be null or not required.
    NORM=A(NSETP,J); A(NSETP,J)=UP
-   call system_clock(funcstart)
    IF(ABS(NORM) > ZERO) THEN
-     !print*, iz2 - iz1
-     !$OMP PARALLEL DO SCHEDULE(dynamic, 16) PRIVATE(SM, JJ)
+     !$OMP PARALLEL DO SCHEDULE(dynamic, 16) PRIVATE(SM, JJ, MX)
      DO JZ=IZ1,IZ2 
          JJ=INDEX(JZ)
-         SM=DOT_PRODUCT(A(NSETP:M,J)/NORM, A(NSETP:M,JJ))/UP
+         if(j > 62 .or. jj > 62) then
+           mx = 120000
+         else
+           mx = M
+         endif
+         !SM=sum((A(NSETP:mx,J)/NORM) * A(NSETP:mx,JJ))/UP
+         !SM=DOT_PRODUCT(A(NSETP:mx,J)/NORM, A(NSETP:mx,JJ))/UP
+         SM=DOT_PRODUCT(A(NSETP:m,J)/NORM, A(NSETP:m,JJ))/UP
          A(NSETP:M,JJ)=A(NSETP:M,JJ)+SM*A(NSETP:M,J)
      END DO
      !$OMP END PARALLEL DO
      A(NSETP,J)=NORM
    END IF
-   call system_clock(funcstop)
-   tot1 = tot1 + (funcstop-funcstart)
 !   The following loop can be null.
-   call system_clock(funcstart)
+!$OMP PARALLEL DO
    DO L=NPP1,M   
       A(L,J)=ZERO
    END DO!  L
-   call system_clock(funcstop)
-   tot2 = tot2 + (funcstop-funcstart)
-!
+   !$OMP end PARALLEL DO
+   !
    W(J)=ZERO 
 !
 !   Solve the triangular system.  Store this solution temporarily in Z().
-   call system_clock(funcstart)
    DO I = NSETP, 1, -1
       IF  (I  /=  NSETP) Z(1:I)=Z(1:I)-A(1:I,II)*Z(I+1)
       II=INDEX(I)   
       Z(I)=Z(I)/A(I,II) 
    END DO 
-   call system_clock(funcstop)
-   tot3 = tot3 + (funcstop-funcstart)
 END SUBROUTINE! ( MOVE J FROM SET Z TO SET P )  
 
 SUBROUTINE TEST_SET_P_AGAINST_CONSTRAINTS 
