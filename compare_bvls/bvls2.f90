@@ -379,6 +379,8 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
 !   set Z to set P.  Z() contains the old B() adjusted as though X(J) = 0.  
 !   A(*,J) contains the new Householder transformation vector.    
    B(1:M)=Z(1:M)
+
+   print*, J, JJ
 !
    INDEX(IZ)=INDEX(IZ1)  
    INDEX(IZ1)=J  
