@@ -1,7 +1,7 @@
 ! ifort -O3 lsvce.f90 -o lsvce ; lsvce
 implicit none
 integer :: i,j,k,ii,m
-!integer, parameter:: n1=800,m=12,n2=600,nskip=21996,nfull=40236
+!integer, parameter:: n1=200,n2=300,nskip=21996,nfull=40236
 integer, parameter:: n1=21996,n2=18240,nskip=21996,nfull=40236
 integer, parameter:: niter=15
 real(kind=8), parameter :: eps=1e-4
@@ -32,7 +32,6 @@ real(kind=8), dimension(2) :: ll,newsig,cc,outsol,outsolavant
 real(kind=8) :: ll1, ll2
 real(kind=8), parameter :: ua=1.5e11
 character(100) :: valuem, filetoopen
-integer :: oui, non
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !open(355,file="dimension",status="old")
@@ -109,11 +108,21 @@ deallocate(A1)
 deallocate(A2)
 deallocate(omc1)
 deallocate(omc2)
+deallocate(AF)
 
 !===remplissages des Q ===
 
 cc(1)=1.9
 cc(2)=1.3
+
+
+allocate(IQY(n1+n2))
+allocate(NN3(m,m))
+allocate(NN4(m,m))
+allocate(NN1(m,n2+n1))
+allocate(Nqy(m,n2+n1))
+allocate(NN5(n1+n2,n1+n2))
+allocate(E(n1+n2))
 
 do ii=1,niter
 
@@ -159,23 +168,19 @@ c2=cc(2)*cc(2)
 !remplace la matrice diagonale IQY par un vecteur diagonal
 
 !==========================================================
-allocate(IQY(n1+n2))
-!$OMP PARALLEL DO schedule(dynamic, 512)
+!$OMP PARALLEL
+!$OMP DO schedule(dynamic, 512)
 do i=1, n1
   IQY(i) = 1d0/c1
 end do
-!$OMP END PARALLEL DO
-!$OMP PARALLEL DO schedule(dynamic, 512)
+!$OMP END DO
+!$OMP DO schedule(dynamic, 512)
 do i = n1+1, n1+n2
   IQY(i) = 1d0/c2
 end do
-!$OMP END PARALLEL DO
+!$OMP END DO
 !==========================================================
 
-allocate(NN3(m,m))
-allocate(NN4(m,m))
-allocate(NN1(m,n2+n1))
-allocate(Nqy(m,n2+n1))
 
 !---------------------------------------------------------
 !allocate(tAT(m,n2+n1))
@@ -193,34 +198,25 @@ allocate(Nqy(m,n2+n1))
 !linearisee
 
 !---------------------------------------------------------
-!$OMP PARALLEL DO schedule(dynamic, 512)
+!$OMP DO schedule(dynamic, 512)
 do i=1, n1+n2
   do j=1, m
       NN1(j, i) = At(i, j)*IQY(i)
   enddo
 enddo
-!$OMP END PARALLEL DO
+!$OMP END DO
+!$OMP END PARALLEL
 !---------------------------------------------------------
 NN3=MATMUL(NN1,At)
 call inverse(NN3,NN4,m)
 Nqy=MATMUL(NN4,NN1)
 
-deallocate(NN3)
-deallocate(NN4)
-deallocate(NN1)
-deallocate(IQY)
 !deallocate(tAT)
 
-allocate(NN5(n1+n2,n1+n2))
 !allocate(DNN5(n1+n2,n1+n2))
 
 print*, "matmul NN5 = At * NQY"
-call system_clock(oui)
 call matmat(At, Nqy, NN5, size(At, 1), size(At,2),size(Nqy,1), size(Nqy,2))
-call system_clock(non)
-print*, "time : ", non-oui
-deallocate(Nqy)
-
 !***************************************************
 !allocate(paortho(n1+n2,n1+n2))
 !do j=1,n1+n2
@@ -239,25 +235,25 @@ deallocate(Nqy)
 !****************************************************
 print*,"contruction de paortho "
 !NN5 = -NN5
-
-!$OMP PARALLEL DO schedule(dynamic, 512)
+!$OMP PARALLEL
+!$OMP DO schedule(dynamic, 512)
 do i = 1, n1+n2
   do j = 1, n1+n2
     NN5(j, i) = -NN5(j, i)
   end do
 end do
-!$OMP END PARALLEL DO
+!$OMP END DO
 
-!$OMP PARALLEL DO schedule(dynamic, 512)
+!$OMP DO schedule(dynamic, 512)
 do i = 1, n1+n2
   NN5(i,i) = NN5(i,i) + 1d0
 end do
-!$OMP END PARALLEL DO
+!$OMP END DO
+!$OMP END PARALLEL
 !****************************************************
 
 !deallocate(At)
 print*,'E====='
-allocate(E(n1+n2))
 
 !time
 !E=MATMUL(NN5,omct)
@@ -267,21 +263,23 @@ call matvect(NN5, omct, E, size(NN5, 1), size(NN5,2), size(omct,1))
 
 ll1=0d0
 ll2=0d0
-!$OMP PARALLEL DO REDUCTION(+:ll1) schedule(dynamic, 512)
+!$OMP PARALLEL 
+!$OMP DO REDUCTION(+:ll1) schedule(dynamic, 512)
 do i=1,n1
   ll1=ll1+(e(i)*e(i))/(c1*c1)
 enddo
-!$OMP END PARALLEL DO
-!$OMP PARALLEL DO REDUCTION(+:ll2) schedule(dynamic, 512)
+!$OMP END DO
+!$OMP DO REDUCTION(+:ll2) schedule(dynamic, 512)
 do i=n1+1,n2+n1
   ll2=ll2+(e(i)*e(i))/(c2*c2)
 enddo
-!$OMP END PARALLEL DO
+!$OMP END DO
+!$OMP END PARALLEL
+
 ll(1)=ll1/2
 ll(2)=ll2/2
 !print*,'ll =====',ll(1),ll(2),c1,c2
 
-deallocate(e)
 
 !.......................................................
 !allocate(p1m(n1+n2,n1+n2))
@@ -308,7 +306,14 @@ deallocate(e)
 
 !......................................................
 print*, "== p1m, p2m dans NN5"
-!$OMP PARALLEL DO schedule(dynamic, 512)
+
+sum_mN11=0d0
+sum_mN12=0d0
+sum_mN21=0d0
+sum_mN22=0d0
+
+!$OMP PARALLEL
+!$OMP DO schedule(dynamic, 512)
 do i = 1, n1+n2
   do j = 1, n1
     NN5(i, j) = NN5(i, j)/c1
@@ -317,7 +322,7 @@ do i = 1, n1+n2
     NN5(i, j) = NN5(i, j)/c2
   end do
 end do
-!$OMP END PARALLEL DO
+!$OMP END DO
 !......................................................
 
 
@@ -406,56 +411,45 @@ end do
 
 !ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 !Version 3
-print*,"mN11"
 
-sum_mN11=0d0
-!$OMP PARALLEL DO REDUCTION(+:sum_mN11) schedule(dynamic, 512)
+!$OMP DO REDUCTION(+:sum_mN11) schedule(dynamic, 512)
 do i=1,n1
   do k=1,n1
     sum_mN11=sum_mN11+NN5(i,k)*NN5(k,i)
   enddo
 enddo
-!$OMP END PARALLEL DO
+!$OMP END DO
 
-print*,"mN12"
-
-sum_mN12=0d0
-!$OMP PARALLEL DO REDUCTION(+:sum_mN12) schedule(dynamic, 512) collapse(2)
+!$OMP DO REDUCTION(+:sum_mN12) schedule(dynamic, 512) collapse(2)
 do i=1,n1
   do k=n1+1,n1+n2
     sum_mN12=sum_mN12+NN5(i,k)*NN5(k,i)
   enddo
 enddo
-!$OMP END PARALLEL DO
+!$OMP END DO
 
-print*,"mN21"
-
-sum_mN21=0d0
-!$OMP PARALLEL DO REDUCTION(+:sum_mN21) schedule(dynamic, 512)
+!$OMP DO REDUCTION(+:sum_mN21) schedule(dynamic, 512)
 do i=1+n1,n2+n1
   do k=n1+1,n1+n2
     sum_mN21=sum_mN21+NN5(i,k)*NN5(k,i)
   enddo
 enddo 
-!$OMP END PARALLEL DO
+!$OMP END DO
 
-print*,"mN22"
-
-sum_mN22=0d0
-!$OMP PARALLEL DO REDUCTION(+:sum_mN22) schedule(dynamic, 512)
+!$OMP DO REDUCTION(+:sum_mN22) schedule(dynamic, 512)
 do i=1,n2
   do k=1,n1
     sum_mN22=sum_mN22+NN5(i+n1,k)*NN5(k,i+n1)
   enddo
 enddo
-!$OMP END PARALLEL DO
+!$OMP END DO
+!$OMP END PARALLEL
 !ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 !deallocate(p1m)
 !deallocate(p2m)
 !deallocate(m11)
 !deallocate(m12)
-deallocate(NN5)
 
 Nmat(1,1)=0.5d0*sum_mN11
 Nmat(1,2)=0.5d0*sum_mN12
@@ -497,6 +491,17 @@ print*,ii,(cc(j),j=1,2)
 
 endif
 enddo
+
+deallocate(At)
+deallocate(omct)
+deallocate(NN1)
+deallocate(NN3)
+deallocate(NN4)
+deallocate(IQY)
+deallocate(NN5)
+deallocate(Nqy)
+deallocate(E)
+
 End
 
 ! ===========================================

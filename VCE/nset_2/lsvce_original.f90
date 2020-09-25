@@ -1,7 +1,7 @@
 ! ifort -O3 lsvce.f90 -o lsvce ; lsvce
 implicit none
 integer :: i,k,j,IA,IER
-integer, parameter:: n1=300,m=12,n2=300,nskip=21996,nfull=40236
+integer, parameter:: n1=200,m=12,n2=300,nskip=21996,nfull=40236
 real(kind=8), dimension(n1,m)::A1
 real(kind=8), dimension(n2,m)::A2
 real(kind=8), dimension(n1+n2,m)::At
@@ -25,7 +25,9 @@ real(kind=8), dimension(2,2) :: Nmat,INmat
 real(kind=8), dimension(2) :: ll,newsig
 real(kind=8), parameter :: ua=1.5e11
 
-open(355,file="RA.out",status="old")
+print*, "let's goo"
+
+open(355,file="../../../transfert/RA.out.mexmro.12",status="old")
 do i=1,nfull
 read(355,*)dat,wpond,omcF,(AF(j),j=1,m)
   if(i.le.n1)then

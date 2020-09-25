@@ -145,6 +145,9 @@ integer INDEX(:)
       real(kind(ONEDP)) ALPHA, ASAVE, CC, EPS, RANGE, RNORM
       real(kind(ONEDP)) NORM, SM, SS, T, UNORM, UP, ZTEST, SM2
 
+      integer, dimension(:), allocatable :: emptindex
+      !integer :: zz = 0, nz = 0
+
 CALL  INITIALIZE 
 !   
 !   The above call will set IERR. 
@@ -163,6 +166,18 @@ LOOPA: DO
    CALL  MOVE_J_FROM_SET_Z_TO_SET_P
 !   
    CALL  TEST_SET_P_AGAINST_CONSTRAINTS
+
+  !zz = 0
+  !nz = 0
+  !do i = 1, N
+  !  if(emptindex(i)  == 0) then
+  !    zz = zz + 1
+  !  else
+  !    nz = nz+1
+  !  endif
+  !enddo
+  !print*, "non nul, nul", nz, zz
+
 !   
 !   The above call may set IERR. 
 !   All coefficients in set P are strictly feasible.  Loop back.
@@ -179,6 +194,15 @@ SUBROUTINE INITIALIZE
 
  print*,'M',M
  print*,'N',N
+
+!emptindex initialisation et allocation
+allocate(emptindex(N))
+emptindex = 0
+do i = 1, 62
+  emptindex = 1
+enddo
+
+
    IF  (M  <=  0 .or. N  <=  0) then
       IERR = 1
       RETURN
@@ -380,7 +404,6 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
 !   A(*,J) contains the new Householder transformation vector.    
    B(1:M)=Z(1:M)
 
-   print*, J, JJ
 !
    INDEX(IZ)=INDEX(IZ1)  
    INDEX(IZ1)=J  
@@ -393,8 +416,8 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
      !$OMP PARALLEL DO SCHEDULE(dynamic, 16) PRIVATE(SM, JJ, MX)
      DO JZ=IZ1,IZ2 
          JJ=INDEX(JZ)
-         if(j > 62 .or. jj > 62) then
-           mx = 120000
+         if(emptindex(j) == 0 .or. emptindex(jj) == 0) then
+           mx = 98372
          else
            mx = M
          endif
@@ -402,6 +425,8 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
          !SM=DOT_PRODUCT(A(NSETP:mx,J)/NORM, A(NSETP:mx,JJ))/UP
          SM=DOT_PRODUCT(A(NSETP:m,J)/NORM, A(NSETP:m,JJ))/UP
          A(NSETP:M,JJ)=A(NSETP:M,JJ)+SM*A(NSETP:M,J)
+         emptindex(JJ) = emptindex(jj) + emptindex(j)
+     !print*, J, JJ, nsetp
      END DO
      !$OMP END PARALLEL DO
      A(NSETP,J)=NORM
@@ -412,6 +437,7 @@ SUBROUTINE MOVE_J_FROM_SET_Z_TO_SET_P
       A(L,J)=ZERO
    END DO!  L
    !$OMP end PARALLEL DO
+   if(NPP1 < 98372) emptindex(j) = 0
    !
    W(J)=ZERO 
 !
@@ -547,9 +573,13 @@ SUBROUTINE MOVE_COEF_I_FROM_SET_P_TO_SET_Z
 !   are computed.  The intent is for array operations to be performed 
 !   and minimal extra data movement.  One extra rotation is applied 
 !   to column II in this approach. 
-      S=A(J-1,1:N); A(J-1,1:N)=CC*S+SS*A(J,1:N); A(J,1:N)=CC*A(J,1:N)-SS*S
-      A(J-1,II)=SM; A(J,II)=ZERO
-      SM=B(J-1); B(J-1)=CC*SM+SS*B(J); B(J)=CC*B(J)-SS*SM
+      S=A(J-1,1:N)
+      A(J-1,1:N)=CC*S+SS*A(J,1:N)
+      A(J,1:N)=CC*A(J,1:N)-SS*S
+      A(J-1,II)=SM
+      A(J,II)=ZERO
+      SM=B(J-1); B(J-1)=CC*SM+SS*B(J) 
+      B(J)=CC*B(J)-SS*SM
    END DO
 !
    NPP1=NSETP
@@ -559,7 +589,13 @@ SUBROUTINE MOVE_COEF_I_FROM_SET_P_TO_SET_Z
 END SUBROUTINE! ( MOVE COEF I FROM SET P TO SET Z ) 
 
 SUBROUTINE TERMINATION
-!
+
+  !do i = 1, N
+  !  print*, emptindex(i)
+  !enddo
+
+  deallocate(emptindex)
+  !
    IF  (IERR   <=   0) then  
 !
 !   Compute the norm of the residual vector.

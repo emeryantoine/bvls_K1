@@ -131,8 +131,8 @@ end do
 !print*, "comparaison",summ, zero, summ+zero, ntot*ixt2
 
 !print*, "smallest number", small
-open(557,file='./BND.out',status='old')
-!open(557,file='../../transfert/cas_complet/040520/BND.out',status='old')
+!open(557,file='../../transfert/KT01/BND.out',status='old')
+open(557,file='../../transfert/cas_complet/040520/BND.out',status='old')
 do i=1,ixt2
   read(557,*)BND(1,i),BND(2,i)
 enddo
